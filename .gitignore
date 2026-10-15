@@ -1,0 +1,17 @@
+node_modules/
+.env
+data/
+*.db
+
+# Python & Sentiment Service
+sentiment_service/.venv/
+.venv/
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.bin
+*.safetensors
+*.onnx
+.huggingface/

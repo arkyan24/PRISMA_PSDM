@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PIJAR — Pengaturan akun, password, tema, dan data monitoring.">
+  <title>PIJAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Pengaturan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://db.onlinewebfonts.com/c/ef458b9e694c0ea230e8d52489363235?family=LT+Internet" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg>">
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('pijar_theme');
+        if (!theme) {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.classList.add('dark-theme');
+        }
+        if (localStorage.getItem('pijar_sidebar_collapsed') === 'true') {
+          document.documentElement.classList.add('sidebar-collapsed');
+        }
+      } catch(e) {}
+    })();
+  </script>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ── Navbar ─────────────────────────────────────── -->
+<nav class="navbar">
+  <!-- YouTube Studio Style Hamburger Button -->
+  <button type="button" class="nav-hamburger-btn" onclick="toggleSidebarCollapse()" id="navHamburgerBtn" title="Ciutkan menu" aria-label="Menu navigasi">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
+  <a href="/dashboard" class="nav-brand" title="PIJAR">
+    <div class="nav-brand-logo">
+      <img src="/images/logo.png" alt="Logo PIJAR" class="nav-brand-img">
+    </div>
+    <span class="nav-brand-name">PIJAR</span>
+  </a>
+
+  <div class="nav-right">
+    <div class="nav-status-pill stopped" id="navStatusPill">
+      <span class="status-dot"></span>
+      <span id="navStatusLabel">STOPPED</span>
+    </div>
+    <button type="button" class="nav-theme-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Mode Tampilan" aria-label="Beralih Mode Gelap/Terang">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+    <button class="nav-logout-btn" onclick="logout()" title="Keluar / Logout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+      <span>Keluar</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── Layout ─────────────────────────────────────── -->
+<div class="layout">
+  <!-- Sidebar (YouTube Studio Style) -->
+  <aside class="sidebar">
+    <!-- Channel / Brand profile header -->
+    <div class="sidebar-brand-profile">
+      <div class="sidebar-avatar-wrap">
+        <img src="/images/logo.png" alt="Logo PIJAR" class="sidebar-avatar-img">
+      </div>
+      <div class="sidebar-profile-title">PIJAR</div>
+      <div class="sidebar-profile-sub">Pusat Syiar Digital Muhammadiyah</div>
+    </div>
+
+    <div class="sidebar-nav">
+      <a href="/dashboard" class="sidebar-item" title="Dasbor">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </span>
+        <span class="sidebar-item-text">Dasbor</span>
+      </a>
+      <a href="/monitor" class="sidebar-item" title="Monitor">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </span>
+        <span class="sidebar-item-text">Monitor</span>
+      </a>
+      <a href="/results" class="sidebar-item" title="Aktivitas">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </span>
+        <span class="sidebar-item-text">Aktivitas</span>
+      </a>
+      <a href="/settings" class="sidebar-item active" title="Pengaturan">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </span>
+        <span class="sidebar-item-text">Pengaturan</span>
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-item" title="Bantuan" style="cursor:pointer">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </span>
+        <span class="sidebar-item-text">Bantuan</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Content area -->
+  <div class="content">
+    <main class="main fade-in settings-page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Pengaturan</h1>
+          <p class="page-title-sub">Kelola akun, keamanan, tampilan, dan data monitoring.</p>
+        </div>
+      </div>
+
+      <div class="settings-features">
+        <section class="settings-feature" aria-labelledby="accountTitle">
+          <div>
+            <h2 class="settings-feature-title" id="accountTitle">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+              Akun
+            </h2>
+            <p class="settings-feature-description">Informasi akun yang sedang digunakan untuk mengakses PIJAR.</p>
+          </div>
+          <div class="settings-feature-body">
+            <div class="account-identity">
+              <span class="account-label">Username</span>
+              <strong id="accountUsername">Memuat akun...</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-feature" aria-labelledby="passwordTitle">
+          <div>
+            <h2 class="settings-feature-title" id="passwordTitle">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="10" width="18" height="11" rx="2"></rect><path d="M7 10V7a5 5 0 0 1 10 0v3m-5 5v2"></path></svg>
+              Ubah Password
+            </h2>
+            <p class="settings-feature-description">Masukkan password lama untuk memverifikasi identitas sebelum membuat password baru.</p>
+          </div>
+          <div class="settings-feature-body">
+            <form id="changePasswordForm" class="settings-password-form">
+              <div class="settings-field">
+                <label class="form-label" for="currentPassword">Password lama</label>
+                <input class="form-input" type="password" id="currentPassword" autocomplete="current-password" required>
+              </div>
+              <div class="settings-field">
+                <label class="form-label" for="newPassword">Password baru</label>
+                <input class="form-input" type="password" id="newPassword" autocomplete="new-password" minlength="8" required>
+                <span class="form-hint">Minimal 8 karakter.</span>
+              </div>
+              <div class="settings-field">
+                <label class="form-label" for="confirmPassword">Ulangi password baru</label>
+                <input class="form-input" type="password" id="confirmPassword" autocomplete="new-password" minlength="8" required>
+              </div>
+              <button class="btn btn-primary" id="changePasswordButton" type="submit">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg>
+                Simpan Password Baru
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <section class="settings-feature" aria-labelledby="forgotPasswordTitle">
+          <div>
+            <h2 class="settings-feature-title" id="forgotPasswordTitle">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3m.1 4h.01"></path></svg>
+              Lupa Password
+            </h2>
+            <p class="settings-feature-description">Informasi pemulihan akun.</p>
+          </div>
+          <div class="settings-feature-body">
+            <p class="settings-recovery-note">Pemulihan otomatis belum tersedia karena akun belum memiliki email pemulihan. Hubungi administrator aplikasi untuk memverifikasi akun dan membantu mengatur ulang password.</p>
+          </div>
+        </section>
+
+        <section class="settings-feature" aria-labelledby="themeTitle">
+          <div>
+            <h2 class="settings-feature-title" id="themeTitle">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+              Tampilan & Tema
+            </h2>
+            <p class="settings-feature-description">Pilih mode tampilan untuk halaman PIJAR ini dan halaman lainnya.</p>
+          </div>
+          <div class="settings-feature-body">
+            <div class="settings-theme-options" role="radiogroup" aria-label="Mode tampilan">
+              <label class="settings-theme-option">
+                <input type="radio" name="themePreference" value="light" onchange="setThemeMode(this.value)">
+                <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg> Terang</span>
+              </label>
+              <label class="settings-theme-option">
+                <input type="radio" name="themePreference" value="dark" onchange="setThemeMode(this.value)">
+                <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14A8.5 8.5 0 0 1 10 3.5 8.5 8.5 0 1 0 20.5 14z"></path></svg> Gelap</span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-feature settings-feature-danger" aria-labelledby="deleteResultsTitle">
+          <div>
+            <h2 class="settings-feature-title" id="deleteResultsTitle">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6"></path></svg>
+              Hapus Semua Data Aktivitas
+            </h2>
+            <p class="settings-feature-description">Hapus seluruh data aktivitas dan riwayat pemindaian yang tersimpan.</p>
+          </div>
+          <div class="settings-feature-body settings-danger-body">
+            <p class="settings-danger-note">Tindakan ini tidak dapat dibatalkan.</p>
+            <button class="btn btn-danger" id="deleteResultsButton" type="button" onclick="clearAllData()">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6"></path></svg>
+              Hapus Semua Data Aktivitas
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  async function loadAccount() {
+    try {
+      const res = await api('/api/auth/me');
+      document.getElementById('accountUsername').textContent = res.user.username;
+    } catch (e) {
+      document.getElementById('accountUsername').textContent = 'Akun tidak dapat dimuat';
+      showToast('Gagal memuat akun: ' + e.message, 'error');
+    }
+  }
+
+  async function changePassword(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const button = document.getElementById('changePasswordButton');
+
+    if (newPassword.length < 8) {
+      showToast('Password baru minimal 8 karakter.', 'error');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast('Konfirmasi password baru tidak cocok.', 'error');
+      return;
+    }
+
+    button.disabled = true;
+    try {
+      const res = await api('/api/auth/change-password', 'POST', { currentPassword, newPassword });
+      showToast(res.message, 'success');
+      form.reset();
+    } catch (e) {
+      showToast('Gagal mengubah password: ' + e.message, 'error');
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  async function clearAllData() {
+    if (!confirm('Hapus semua data aktivitas dan riwayat pemindaian? Tindakan ini tidak dapat dibatalkan.')) {
+      return;
+    }
+
+    const button = document.getElementById('deleteResultsButton');
+    button.disabled = true;
+    try {
+      const res = await api('/api/results', 'DELETE');
+      showToast(res.message || 'Semua data aktivitas berhasil dihapus.', 'success');
+    } catch (e) {
+      showToast('Gagal menghapus: ' + e.message, 'error');
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadMonitorStatus();
+    loadAccount();
+    document.getElementById('changePasswordForm').addEventListener('submit', changePassword);
+
+    const savedTheme = localStorage.getItem('pijar_theme');
+    const selectedTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const themeOption = document.querySelector(`input[name="themePreference"][value="${selectedTheme}"]`);
+    if (themeOption) themeOption.checked = true;
+  });
+</script>
+</body>
+</html>

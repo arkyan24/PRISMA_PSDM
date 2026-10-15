@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PIJAR — Dashboard analitik monitoring isu real-time dari Google Search Engine & Media Sosial.">
+  <title>PIJAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Analytics Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://db.onlinewebfonts.com/c/ef458b9e694c0ea230e8d52489363235?family=LT+Internet" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('pijar_theme');
+        if (!theme) {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.classList.add('dark-theme');
+        }
+        if (localStorage.getItem('pijar_sidebar_collapsed') === 'true') {
+          document.documentElement.classList.add('sidebar-collapsed');
+        }
+      } catch(e) {}
+    })();
+  </script>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ── Navbar ─────────────────────────────────────── -->
+<nav class="navbar">
+  <!-- YouTube Studio Style Hamburger Button -->
+  <button type="button" class="nav-hamburger-btn" onclick="toggleSidebarCollapse()" id="navHamburgerBtn" title="Ciutkan menu" aria-label="Menu navigasi">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
+  <a href="/dashboard" class="nav-brand" title="PIJAR">
+    <div class="nav-brand-logo">
+      <img src="/images/logo.png" alt="Logo PIJAR" class="nav-brand-img">
+    </div>
+    <span class="nav-brand-name">PIJAR</span>
+  </a>
+
+  <div class="nav-right">
+    <div class="nav-status-pill stopped" id="navStatusPill">
+      <span class="status-dot"></span>
+      <span id="navStatusLabel">STOPPED</span>
+    </div>
+    <button type="button" class="nav-theme-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Mode Tampilan" aria-label="Beralih Mode Gelap/Terang">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+    <button class="nav-logout-btn" onclick="logout()" title="Keluar / Logout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+      <span>Keluar</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── Layout ─────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- Sidebar (YouTube Studio Style) -->
+  <aside class="sidebar">
+    <!-- Channel / Brand profile header -->
+    <div class="sidebar-brand-profile">
+      <div class="sidebar-avatar-wrap">
+        <img src="/images/logo.png" alt="Logo PIJAR" class="sidebar-avatar-img">
+      </div>
+      <div class="sidebar-profile-title">PIJAR</div>
+      <div class="sidebar-profile-sub">Pusat Syiar Digital Muhammadiyah</div>
+    </div>
+
+    <div class="sidebar-nav">
+      <a href="/dashboard" class="sidebar-item active" title="Dasbor">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </span>
+        <span class="sidebar-item-text">Dasbor</span>
+      </a>
+      <a href="/monitor" class="sidebar-item" title="Monitor">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </span>
+        <span class="sidebar-item-text">Monitor</span>
+      </a>
+      <a href="/results" class="sidebar-item" title="Aktivitas">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </span>
+        <span class="sidebar-item-text">Aktivitas</span>
+      </a>
+      <a href="/settings" class="sidebar-item" title="Pengaturan">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </span>
+        <span class="sidebar-item-text">Pengaturan</span>
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-item" title="Bantuan" style="cursor:pointer">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </span>
+        <span class="sidebar-item-text">Bantuan</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Content area -->
+  <div class="content">
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- Page header -->
+      <div class="page-header fade-in">
+        <div>
+          <h1 class="page-title" id="activeKeywordTitle">Semua Monitor</h1>
+          <div class="page-title-sub" id="activeKeywordSub">Monitoring isu dari berbagai platform secara real-time</div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;" id="headerTopicsWrap">
+          <div class="keyword-badge" id="monitorActiveKeywordBadge" style="display:none;">
+            <span>Keyword:</span> <strong id="monitorActiveKeywordVal" style="color:var(--accent);">—</strong>
+          </div>
+          <a href="/monitor" class="keyword-badge" style="text-decoration:none; cursor:pointer;" id="addKeywordBtn">
+            <span>+</span> <span>Tambah Monitor</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- ── Dashboard Metrics Section (Sesuai Referensi Gambar) ── -->
+      <div class="dash-metrics-container">
+
+        <!-- Fitur Monitor Kontrol (Persis di atas Box Total Temuan) -->
+        <div class="dash-monitor-control-card fade-in" id="dashMonitorControlCard">
+          <div class="dmc-left">
+            <div class="card-title" style="font-size: 0.98rem; font-weight: 700; margin: 0; display: flex; align-items: center; color: var(--text);">
+              <svg class="title-svg" viewBox="0 0 24 24" fill="none" stroke="#5254f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:#5254f1; width:22px; height:22px; margin-right:8px;"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+              <span>Monitor Kontrol</span>
+            </div>
+            <div class="dmc-status-pill">
+              <span class="monitor-mini-dot" id="rpMonDot"></span>
+              <span class="dmc-status-text" id="rpMonLabel" style="font-size:0.84rem; font-weight:600; color:var(--text-muted);">Tidak Aktif</span>
+            </div>
+          </div>
+
+          <div class="dmc-center">
+            <div class="dmc-meta-item" title="Interval Polling Pemindaian">
+              <span class="dmc-meta-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Interval:
+              </span>
+              <strong class="dmc-meta-val" id="rpInterval">—</strong>
+            </div>
+            <div class="dmc-meta-divider"></div>
+            <div class="dmc-meta-item" title="Waktu Scan Terakhir">
+              <span class="dmc-meta-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Scan Terakhir:
+              </span>
+              <strong class="dmc-meta-val" id="rpLastRun">Belum ada</strong>
+            </div>
+          </div>
+
+          <div class="dmc-actions">
+            <button class="dmc-btn dmc-btn-start" id="rpBtnStart" onclick="startMonitor()" title="Mulai Monitoring Otomatis">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>Mulai Monitoring</span>
+            </button>
+            <button class="dmc-btn dmc-btn-stop" id="rpBtnStop" onclick="stopMonitor()" style="display:none;" title="Hentikan Monitoring Otomatis">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;"><rect x="6" y="6" width="12" height="12"></rect></svg>
+              <span>Hentikan</span>
+            </button>
+            <button class="dmc-btn dmc-btn-scan" id="rpBtnScan" onclick="runNow()" title="Jalankan Scan Sekarang">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Scan Sekarang</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Top Full-Width Hero Card: Total Temuan -->
+        <div class="dash-hero-banner" title="Total Temuan Isu">
+          <!-- Left Organic Wave Blob -->
+          <svg class="dash-hero-blob-left" viewBox="0 0 160 110" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M-10,-10 C35,-5 60,25 45,60 C35,85 70,105 50,130 L-10,130 Z" fill="#b8c673" opacity="0.45" />
+            <path d="M-10,-10 C25,-10 45,20 30,55 C20,80 50,98 35,120 L-10,120 Z" fill="#ccd88b" />
+          </svg>
+
+          <!-- Center Content (Icon, Label, Value) -->
+          <div class="dash-hero-content">
+            <div class="dash-hero-icon-wrap" title="Total Temuan">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 3v18"></path>
+                <path d="M3 12h18"></path>
+                <circle cx="12" cy="12" r="4"></circle>
+              </svg>
+            </div>
+            <div class="dash-hero-label">TOTAL TEMUAN</div>
+            <div class="dash-hero-value" id="statTotal">—</div>
+          </div>
+
+          <!-- Right Organic Wave Blob -->
+          <svg class="dash-hero-blob-right" viewBox="0 0 180 110" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M190,-10 C140,-5 120,30 135,65 C145,90 100,105 120,130 L190,130 Z" fill="#b8c673" opacity="0.45" />
+            <path d="M190,-10 C155,-10 135,25 150,60 C160,85 125,100 140,120 L190,120 Z" fill="#ccd88b" />
+          </svg>
+        </div>
+
+        <!-- 4 Platform Metric Cards -->
+        <div class="dash-platforms-row">
+          <!-- 1. FACEBOOK -->
+          <div class="dash-plat-card card-fb" title="Temuan Facebook">
+            <div class="dash-plat-info">
+              <div class="dash-plat-label">FACEBOOK</div>
+              <div class="dash-plat-value" id="statFacebook">—</div>
+            </div>
+            <!-- Wavy Accent Blob — Facebook: Tall S-curve -->
+            <svg class="dash-plat-wave" viewBox="0 0 130 95" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M130,-10 C85,-5 100,22 80,45 C60,68 95,78 75,105 L130,105 Z" fill="#e6923b" opacity="0.42" />
+              <path d="M130,-10 C100,0 110,30 90,50 C70,72 105,85 85,105 L130,105 Z" fill="#fca750" />
+              <path d="M130,25 C108,30 112,48 100,60 C88,74 108,82 98,100 L130,100 Z" fill="#ffbe70" opacity="0.6" />
+            </svg>
+            <!-- Platform Icon -->
+            <div class="dash-plat-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 2. INSTAGRAM -->
+          <div class="dash-plat-card card-ig" title="Temuan Instagram">
+            <div class="dash-plat-info">
+              <div class="dash-plat-label">INSTAGRAM</div>
+              <div class="dash-plat-value" id="statInstagram">—</div>
+            </div>
+            <!-- Wavy Accent Blob — Instagram: Diagonal ribbon twist -->
+            <svg class="dash-plat-wave" viewBox="0 0 130 95" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M130,-15 C115,10 78,8 85,40 C92,72 70,80 80,110 L130,110 Z" fill="#c73e5a" opacity="0.35" />
+              <path d="M130,-5 C108,5 90,18 95,48 C100,78 82,88 90,110 L130,110 Z" fill="#e0634c" opacity="0.55" />
+              <path d="M130,5 C118,15 105,25 108,52 C112,80 95,92 102,110 L130,110 Z" fill="#fa7c64" />
+            </svg>
+            <!-- Platform Icon -->
+            <div class="dash-plat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 3. TWITTER / X -->
+          <div class="dash-plat-card card-tw" title="Temuan Twitter / X">
+            <div class="dash-plat-info">
+              <div class="dash-plat-label">TWITTER / X</div>
+              <div class="dash-plat-value" id="statTwitter">—</div>
+            </div>
+            <!-- Wavy Accent Blob — Twitter: Wide diagonal sweep -->
+            <svg class="dash-plat-wave" viewBox="0 0 130 95" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M70,-10 C55,15 80,25 65,55 C50,85 90,95 75,115 L140,115 L140,-10 Z" fill="#2ea8c0" opacity="0.3" />
+              <path d="M90,-10 C72,12 95,30 80,55 C65,80 100,90 88,115 L140,115 L140,-10 Z" fill="#4ecad8" opacity="0.5" />
+              <path d="M110,-10 C98,18 115,35 105,58 C95,78 115,88 108,110 L140,110 L140,-10 Z" fill="#61e5f8" />
+            </svg>
+            <!-- Platform Icon -->
+            <div class="dash-plat-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 4. WEBSITE -->
+          <div class="dash-plat-card card-web" title="Temuan Website">
+            <div class="dash-plat-info">
+              <div class="dash-plat-label">WEBSITE</div>
+              <div class="dash-plat-value" id="statWebsite">—</div>
+            </div>
+            <!-- Wavy Accent Blob — Website: Stacked organic circles -->
+            <svg class="dash-plat-wave" viewBox="0 0 130 95" preserveAspectRatio="none" aria-hidden="true">
+              <ellipse cx="120" cy="25" rx="38" ry="32" fill="#00a860" opacity="0.3" />
+              <ellipse cx="110" cy="70" rx="32" ry="28" fill="#00cf7f" opacity="0.45" />
+              <circle cx="125" cy="48" r="24" fill="#2eeaa0" opacity="0.55" />
+            </svg>
+            <!-- Platform Icon -->
+            <div class="dash-plat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Baris Atas Grafik: Box Tren Penemuan (Lebar Penuh hingga kanan) ── -->
+      <div class="trend-full-row fade-in">
+        <div class="card fade-in" style="width: 100%;">
+          <div class="card-header">
+            <div class="card-title" style="font-size: 0.98rem; font-weight: 700; display: flex; align-items: center; color: var(--text);">
+              <svg class="title-svg" viewBox="0 0 24 24" fill="none" stroke="#5254f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:#5254f1; width:22px; height:22px; margin-right:8px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+              <span>Tren Penemuan</span>
+            </div>
+            <div class="card-actions">
+              <div class="card-badge" id="latestScanBadge">7 Hari</div>
+              <div class="date-picker-wrap">
+                <div class="date-chip" id="dateChip" onclick="toggleDateRangeDropdown(event)" title="Klik untuk mengubah rentang tanggal">
+                  <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span id="dateChipText">7 Hari Terakhir</span>
+                  <svg style="width:11px;height:11px;margin-left:2px;stroke:currentColor;fill:none;" viewBox="0 0 24 24" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div class="date-range-dropdown" id="dateRangeDropdown" onclick="event.stopPropagation()">
+                  <div class="date-range-title">Pilih Rentang Waktu</div>
+                  <div class="date-presets">
+                    <button class="date-preset-btn active" data-range="7d" onclick="setDateRangePreset('7d')">
+                      <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg> 7 Hari Terakhir</span>
+                      <span style="font-size:0.7rem;opacity:0.6;">Minggu ini</span>
+                    </button>
+                    <button class="date-preset-btn" data-range="30d" onclick="setDateRangePreset('30d')">
+                      <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg> 30 Hari Terakhir</span>
+                      <span style="font-size:0.7rem;opacity:0.6;">1 bulan</span>
+                    </button>
+                    <button class="date-preset-btn" data-range="this_month" onclick="setDateRangePreset('this_month')">
+                      <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg> Bulan Ini</span>
+                      <span style="font-size:0.7rem;opacity:0.6;">Bulan berjalan</span>
+                    </button>
+                    <button class="date-preset-btn" data-range="all" onclick="setDateRangePreset('all')">
+                      <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a15 15 0 0 1 0 18m0-18a15 15 0 0 0 0 18"></path></svg> Semua Data</span>
+                      <span style="font-size:0.7rem;opacity:0.6;">All time</span>
+                    </button>
+                  </div>
+                  <div class="date-custom-divider"></div>
+                  <div class="date-range-title">Rentang Kustom</div>
+                  <div class="date-custom-form">
+                    <div class="date-input-group">
+                      <label class="date-input-label">Dari Tanggal</label>
+                      <input type="date" class="date-input-field" id="customStartDate">
+                    </div>
+                    <div class="date-input-group">
+                      <label class="date-input-label">Sampai Tanggal</label>
+                      <input type="date" class="date-input-field" id="customEndDate">
+                    </div>
+                    <button class="date-apply-btn" onclick="applyCustomDateRange()">Terapkan Rentang</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="position:relative; height: 230px;">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Baris Bawah Grafik: Distribusi Platform (Kiri) + Distribusi Sentimen (Kanan) ── -->
+      <div class="charts-row-balanced">
+
+        <!-- Donut: platform distribution -->
+        <div class="card fade-in">
+          <div class="card-header" style="margin-bottom: 8px;">
+            <div class="card-title" style="font-size: 0.98rem; font-weight: 700; display: flex; align-items: center; color: var(--text);">
+              <svg class="title-svg" viewBox="0 0 24 24" fill="none" stroke="#5254f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:#5254f1; width:22px; height:22px; margin-right:8px;"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+              <span>Distribusi Platform</span>
+            </div>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut-chart-container">
+              <canvas id="platformDonut"></canvas>
+              <div class="donut-center">
+                <div class="donut-center-value" id="donutTotal">—</div>
+                <div class="donut-center-label" id="donutLabel">TOTAL</div>
+              </div>
+            </div>
+            <div class="plat-pill-list" id="platformLegend">
+              <!-- filled by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Distribusi Sentimen (Dengan pilihan tampilan Bar / Pie) -->
+        <div class="card fade-in" id="cardSentiment">
+          <div class="card-header" style="margin-bottom: 8px;">
+            <div class="card-title" style="font-size: 0.98rem; font-weight: 700; display: flex; align-items: center; color: var(--text);">
+              <svg class="title-svg" viewBox="0 0 24 24" fill="none" stroke="#5254f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:#5254f1; width:22px; height:22px; margin-right:8px;"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+              <span id="sentimentCardTitle">Distribusi Sentimen</span>
+            </div>
+            <div class="card-actions">
+              <!-- Segmented Toggle: Bar vs Pie -->
+              <div class="chart-type-toggle" role="tablist" aria-label="Tipe Tampilan Sentimen">
+                <button type="button" class="chart-toggle-btn active" id="btnSentimentBar" onclick="setSentimentView('bar')" title="Tampilan Diagram Batang per Platform">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><rect x="3" y="12" width="4" height="8" rx="1"></rect><rect x="10" y="8" width="4" height="12" rx="1"></rect><rect x="17" y="4" width="4" height="16" rx="1"></rect></svg>
+                  <span>Bar</span>
+                </button>
+                <button type="button" class="chart-toggle-btn" id="btnSentimentPie" onclick="setSentimentView('pie')" title="Tampilan Diagram Lingkaran (Pie/Donat) Sentimen">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                  <span>Pie</span>
+                </button>
+              </div>
+              <div class="card-badge">Analisis</div>
+            </div>
+          </div>
+
+          <!-- Bar View -->
+          <div id="sentimentBarContainer" style="height: 200px; position: relative;">
+            <canvas id="sentimentBarChart"></canvas>
+          </div>
+
+          <!-- Pie / Donut View (Identik dengan Distribusi Platform) -->
+          <div id="sentimentPieContainer" style="display: none;">
+            <div class="donut-wrap">
+              <div class="donut-chart-container">
+                <canvas id="sentimentDonut"></canvas>
+                <div class="donut-center">
+                  <div class="donut-center-value" id="sentDonutPct" style="color: var(--positive);">—%</div>
+                  <div class="donut-center-label" id="sentDonutLabel">POSITIF</div>
+                </div>
+              </div>
+              <div class="plat-pill-list" id="sentLegend">
+                <!-- filled by JS with .plat-pill-card matching platformLegend! -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<script src="/js/app.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   DASHBOARD ANALYTICS — Chart.js + API Integration
+   ═══════════════════════════════════════════════════ */
+
+const PLATFORM_COLORS = {
+  facebook:  { fill: '#FCA750', soft: 'rgba(252,167,80,0.16)' },
+  twitter:   { fill: '#61E5F8', soft: 'rgba(97,229,248,0.2)' },
+  instagram: { fill: '#FA7C64', soft: 'rgba(250,124,100,0.16)' },
+  website:   { fill: '#2EEAA0', soft: 'rgba(46,234,160,0.16)' },
+};
+const SENTIMENT_COLORS = {
+  positif: { fill: '#22c55e', soft: 'rgba(34,197,94,0.15)' },
+  negatif: { fill: '#ef4444', soft: 'rgba(239,68,68,0.15)' },
+  neutral: { fill: '#94a3b8', soft: 'rgba(148,163,184,0.15)' },
+};
+
+let trendChartInstance = null;
+let platformDonutInstance = null;
+let sentimentBarInstance = null;
+let sentimentDonutInstance = null;
+let allResults = [];
+
+function isCurrentThemeDark() {
+  return document.documentElement.getAttribute('data-theme') === 'dark';
+}
+
+window.updateChartsForTheme = function(isDark) {
+  if (typeof Chart === 'undefined') return;
+  Chart.defaults.color = isDark ? '#9ca3af' : '#8b93a7';
+  
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.04)';
+  const tooltipBg = isDark ? '#111827' : '#1e2235';
+  const tooltipBorder = isDark ? '#374151' : '#e8eaf2';
+  const legendColor = isDark ? '#e5e7eb' : '#4b5563';
+  const pointBorder = isDark ? '#111827' : '#ffffff';
+
+  if (trendChartInstance) {
+    if (trendChartInstance.options.scales && trendChartInstance.options.scales.x) {
+      trendChartInstance.options.scales.x.grid.color = gridColor;
+      trendChartInstance.options.scales.x.ticks.color = isDark ? '#9ca3af' : '#8b93a7';
+      trendChartInstance.options.scales.y.grid.color = gridColor;
+      trendChartInstance.options.scales.y.ticks.color = isDark ? '#9ca3af' : '#8b93a7';
+    }
+    if (trendChartInstance.options.plugins && trendChartInstance.options.plugins.legend) {
+      trendChartInstance.options.plugins.legend.labels.color = legendColor;
+    }
+    if (trendChartInstance.options.plugins && trendChartInstance.options.plugins.tooltip) {
+      trendChartInstance.options.plugins.tooltip.backgroundColor = tooltipBg;
+      trendChartInstance.options.plugins.tooltip.borderColor = tooltipBorder;
+    }
+    if (trendChartInstance.data && trendChartInstance.data.datasets) {
+      trendChartInstance.data.datasets.forEach(ds => {
+        ds.pointBorderColor = pointBorder;
+        ds.pointHoverBorderColor = pointBorder;
+      });
+    }
+    trendChartInstance.update();
+  }
+
+  if (platformDonutInstance) {
+    if (platformDonutInstance.options.plugins && platformDonutInstance.options.plugins.tooltip) {
+      platformDonutInstance.options.plugins.tooltip.backgroundColor = tooltipBg;
+    }
+    if (platformDonutInstance.data && platformDonutInstance.data.datasets) {
+      platformDonutInstance.data.datasets.forEach(ds => {
+        ds.hoverBorderColor = isDark ? '#111827' : '#ffffff';
+      });
+    }
+    if (typeof setPlatformHover === 'function') {
+      setPlatformHover(currentHoveredPlatformIndex);
+    } else {
+      platformDonutInstance.update();
+    }
+  }
+
+  if (sentimentBarInstance) {
+    if (sentimentBarInstance.options.scales && sentimentBarInstance.options.scales.y) {
+      sentimentBarInstance.options.scales.y.grid.color = gridColor;
+      sentimentBarInstance.options.scales.y.ticks.color = isDark ? '#9ca3af' : '#8b93a7';
+    }
+    if (sentimentBarInstance.options.scales && sentimentBarInstance.options.scales.x) {
+      sentimentBarInstance.options.scales.x.ticks.color = isDark ? '#9ca3af' : '#8b93a7';
+    }
+    if (sentimentBarInstance.options.plugins && sentimentBarInstance.options.plugins.legend) {
+      sentimentBarInstance.options.plugins.legend.labels.color = legendColor;
+    }
+    if (sentimentBarInstance.options.plugins && sentimentBarInstance.options.plugins.tooltip) {
+      sentimentBarInstance.options.plugins.tooltip.backgroundColor = tooltipBg;
+    }
+    sentimentBarInstance.update();
+  }
+
+  if (sentimentDonutInstance) {
+    if (sentimentDonutInstance.options.plugins && sentimentDonutInstance.options.plugins.tooltip) {
+      sentimentDonutInstance.options.plugins.tooltip.backgroundColor = tooltipBg;
+    }
+    sentimentDonutInstance.update();
+  }
+};
+
+// ─── Monitor & Global State ────────────────────────
+let selectedMonitorId = 'all';
+let monitorsList = [];
+let currentDateRange = {
+  type: '7d', // 'today', '7d', '30d', 'this_month', 'all', 'custom'
+  startDate: null,
+  endDate: null
+};
+
+// ─── Init ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  Chart.defaults.font.family = "'Poppins', -apple-system, sans-serif";
+  Chart.defaults.font.size = 10;
+  Chart.defaults.color = isCurrentThemeDark() ? '#9ca3af' : '#8b93a7';
+
+  // Read URL params if any
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramMonId = urlParams.get('monitor_id');
+  if (paramMonId) {
+    selectedMonitorId = paramMonId;
+  }
+
+  await loadMonitorsSelector();
+  await Promise.all([
+    loadStats(),
+    loadMonitorStatus(),
+    loadAllResults(),
+  ]);
+
+  // Auto-refresh
+  setInterval(() => { loadMonitorStatus(); }, 10000);
+  setInterval(() => { loadStats(); loadAllResults(); loadMonitorsSelector(true); }, 30000);
+});
+
+// ─── Load Monitors & Selector ──────────────────────
+async function loadMonitorsSelector(silent = false) {
+  try {
+    const res = await api('/api/monitors');
+    monitorsList = res.data || [];
+
+    // Populate Selector Dropdown
+    const sel = document.getElementById('monitorSelector');
+    if (sel) {
+      sel.innerHTML = `<option value="all">Semua Monitor (Agregat)</option>` +
+        monitorsList.map(m => `
+          <option value="${m.id}" ${selectedMonitorId == m.id ? 'selected' : ''}>
+            ${escapeHtml(m.name)} (${escapeHtml(m.keyword)})
+          </option>
+        `).join('');
+
+      if (selectedMonitorId !== 'all' && !monitorsList.some(m => m.id == selectedMonitorId)) {
+        selectedMonitorId = 'all';
+        sel.value = 'all';
+      } else {
+        sel.value = selectedMonitorId;
+      }
+    }
+
+    // Populate Right Panel Monitors List
+    renderRightPanelMonitors();
+
+    // Update active monitor headers
+    updateActiveMonitorHeader();
+
+  } catch (e) {
+    console.error('loadMonitorsSelector error:', e);
+    if (!silent) showToast('Gagal memuat monitors: ' + e.message, 'error');
+  }
+}
+
+function renderRightPanelMonitors() {
+  const el = document.getElementById('rpMonitorList');
+  if (!el) return;
+
+  if (monitorsList.length === 0) {
+    el.innerHTML = `
+      <div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding: 14px;">
+        Belum ada monitor aktif.<br>
+        <a href="/monitor" style="color:var(--accent); font-weight:600; text-decoration:none; display:inline-block; margin-top:6px;">+ Tambah Monitor</a>
+      </div>
+    `;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="kw-item ${selectedMonitorId === 'all' ? 'active' : ''}" 
+         style="cursor:pointer; ${selectedMonitorId === 'all' ? 'background:var(--accent-soft);border-color:var(--accent);' : ''}" 
+         onclick="onMonitorChange('all')" 
+         title="Tampilkan semua hasil agregat">
+      <span class="kw-hash" style="color:var(--accent);"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a15 15 0 0 1 0 18m0-18a15 15 0 0 0 0 18"></path></svg></span>
+      <div class="kw-text" style="font-weight:600;">Semua Monitor</div>
+    </div>
+    ${monitorsList.map(m => {
+      const isCur = selectedMonitorId == m.id;
+      return `
+        <div class="kw-item ${isCur ? 'active' : ''}" 
+             style="cursor:pointer; ${isCur ? 'background:var(--accent-soft);border-color:var(--accent);' : ''}" 
+             onclick="onMonitorChange('${m.id}')" 
+             title="Pilih monitor: ${escapeHtml(m.name)}">
+          <span class="monitor-status-dot ${m.status === 'active' ? 'active' : 'inactive'}" style="margin-right:6px; flex-shrink:0;"></span>
+          <div class="kw-text" style="font-weight:600; flex:1; overflow:hidden;">
+            <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(m.name)}</div>
+            <div style="font-size:0.68rem; color:var(--text-muted); font-weight:400;">#${escapeHtml(m.keyword)}</div>
+          </div>
+          <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); margin-left:auto; padding-left:6px;">
+            ${m.result_count !== undefined ? m.result_count.toLocaleString() : '0'}
+          </span>
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+
+function updateActiveMonitorHeader() {
+  const titleEl = document.getElementById('activeKeywordTitle');
+  const subEl = document.getElementById('activeKeywordSub');
+  const badgeWrap = document.getElementById('monitorActiveKeywordBadge');
+  const badgeVal = document.getElementById('monitorActiveKeywordVal');
+  const scanBtnText = document.getElementById('btnScanCurrentText');
+
+  if (selectedMonitorId !== 'all') {
+    const cur = monitorsList.find(m => m.id == selectedMonitorId);
+    if (cur) {
+      if (titleEl) titleEl.textContent = cur.name;
+      if (subEl) subEl.textContent = cur.description || `Memantau isu "${cur.keyword}" secara real-time`;
+      if (badgeWrap) badgeWrap.style.display = 'inline-flex';
+      if (badgeVal) badgeVal.textContent = cur.keyword;
+      if (scanBtnText) scanBtnText.textContent = `Scan "${cur.name}"`;
+
+      // Update right-panel interval & last run
+      const rpInterval = document.getElementById('rpInterval');
+      const rpLastRun = document.getElementById('rpLastRun');
+      if (rpInterval) rpInterval.textContent = `${cur.polling_interval} jam`;
+      if (rpLastRun) rpLastRun.textContent = cur.last_polled_at ? formatTime(cur.last_polled_at) : 'Belum ada';
+      return;
+    }
+  }
+
+  // Fallback to "Semua Monitor"
+  if (titleEl) titleEl.textContent = 'Semua Monitor';
+  if (subEl) subEl.textContent = 'Monitoring isu dari berbagai platform secara real-time';
+  if (badgeWrap) badgeWrap.style.display = 'none';
+  if (scanBtnText) scanBtnText.textContent = 'Scan Semua Monitor';
+}
+
+async function onMonitorChange(val) {
+  selectedMonitorId = val;
+  const sel = document.getElementById('monitorSelector');
+  if (sel && sel.value !== val) sel.value = val;
+
+  updateActiveMonitorHeader();
+  renderRightPanelMonitors();
+
+  // Update URL history without reload
+  const url = new URL(window.location);
+  if (val === 'all') {
+    url.searchParams.delete('monitor_id');
+  } else {
+    url.searchParams.set('monitor_id', val);
+  }
+  window.history.replaceState({}, '', url);
+
+  await Promise.all([
+    loadStats(),
+    loadAllResults()
+  ]);
+}
+
+async function pollCurrentMonitor() {
+  if (selectedMonitorId && selectedMonitorId !== 'all') {
+    try {
+      const res = await api(`/api/monitors/${selectedMonitorId}/poll-now`, 'POST');
+      showToast(res.message || 'Scan dimulai untuk monitor ini!', res.success ? 'success' : 'error');
+      startAutoRefresh();
+      loadMonitorStatus();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  } else {
+    runNow();
+  }
+}
+
+function drilldownPlatform(platform) {
+  let url = `/results?platform=${platform}`;
+  if (selectedMonitorId && selectedMonitorId !== 'all') {
+    url += `&monitor_id=${selectedMonitorId}`;
+  }
+  window.location.href = url;
+}
+
+// ─── Load stats ────────────────────────────────────
+async function loadStats() {
+  try {
+    const url = (selectedMonitorId && selectedMonitorId !== 'all')
+      ? `/api/results/stats?monitor_id=${selectedMonitorId}`
+      : '/api/results/stats';
+    const res = await api(url);
+    const s = res.data;
+
+    animateValueEl('statTotal', s.total);
+    animateValueEl('statFacebook', s.platforms.facebook);
+    animateValueEl('statTwitter', s.platforms.twitter);
+    animateValueEl('statInstagram', s.platforms.instagram);
+    animateValueEl('statWebsite', s.platforms.website);
+
+    document.getElementById('donutTotal').textContent = s.total;
+
+    // Platform donut
+    renderPlatformDonut(s.platforms);
+    renderPlatformBars(s.platforms, s.total);
+
+    // Sentiment
+    if (s.sentiment) {
+      const pos = s.sentiment.positif || 0;
+      const neg = s.sentiment.negatif || 0;
+      const neu = s.sentiment.neutral || 0;
+      if (document.getElementById('sentPositif')) document.getElementById('sentPositif').textContent = pos;
+      if (document.getElementById('sentNegatif')) document.getElementById('sentNegatif').textContent = neg;
+      if (document.getElementById('sentNeutral')) document.getElementById('sentNeutral').textContent = neu;
+      renderSentimentDonut(pos, neg, neu);
+    }
+  } catch(e) {
+    console.error('loadStats error:', e);
+  }
+}
+
+// ─── Load all results for charts ──────────────────
+async function loadAllResults() {
+  try {
+    const url = (selectedMonitorId && selectedMonitorId !== 'all')
+      ? `/api/results?limit=500&monitor_id=${selectedMonitorId}`
+      : '/api/results?limit=500';
+    const res = await api(url);
+    allResults = res.data || [];
+    renderTrendChart(allResults, currentDateRange);
+    renderSentimentBarChart(allResults);
+    renderRecentNews(allResults.slice(0, 8));
+  } catch(e) {
+    console.error('loadAllResults error:', e);
+  }
+}
+
+// ─── Filter results by date range ─────────────────
+function filterResultsByRange(results, range) {
+  if (!results || results.length === 0) return [];
+  if (range.type === 'all') return results;
+
+  const now = new Date();
+  let start, end;
+
+  if (range.type === 'today') {
+    start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+  } else if (range.type === '7d') {
+    end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    start = new Date(end.getTime() - 6 * 24 * 3600 * 1000);
+    start.setHours(0, 0, 0, 0);
+  } else if (range.type === '30d') {
+    end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    start = new Date(end.getTime() - 29 * 24 * 3600 * 1000);
+    start.setHours(0, 0, 0, 0);
+  } else if (range.type === 'this_month') {
+    start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  } else if (range.type === 'custom') {
+    if (!range.startDate || !range.endDate) return results;
+    start = new Date(range.startDate + 'T00:00:00');
+    end = new Date(range.endDate + 'T23:59:59');
+  } else {
+    return results;
+  }
+
+  return results.filter(r => {
+    if (!r.scanned_at) return false;
+    const d = new Date(r.scanned_at);
+    return d >= start && d <= end;
+  });
+}
+
+// ─── Trend chart (results per day) ─────────────────
+function renderTrendChart(results, range = currentDateRange) {
+  const filtered = filterResultsByRange(results, range);
+
+  // Group by date
+  const byDate = {};
+  filtered.forEach(r => {
+    const d = r.scanned_at ? r.scanned_at.split('T')[0] : null;
+    if (!d) return;
+    if (!byDate[d]) byDate[d] = { facebook: 0, twitter: 0, instagram: 0, website: 0, total: 0 };
+    byDate[d][r.platform] = (byDate[d][r.platform] || 0) + 1;
+    byDate[d].total += 1;
+  });
+
+  // Generate sequence of dates
+  let dates = [];
+  const now = new Date();
+
+  if (range.type === 'today') {
+    dates = [now.toISOString().split('T')[0]];
+  } else if (range.type === '7d') {
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 3600 * 1000);
+      dates.push(d.toISOString().split('T')[0]);
+    }
+  } else if (range.type === '30d') {
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 3600 * 1000);
+      dates.push(d.toISOString().split('T')[0]);
+    }
+  } else if (range.type === 'this_month') {
+    const totalDays = now.getDate();
+    for (let i = 1; i <= totalDays; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth(), i);
+      dates.push(d.toISOString().split('T')[0]);
+    }
+  } else if (range.type === 'custom' && range.startDate && range.endDate) {
+    const cur = new Date(range.startDate + 'T00:00:00');
+    const stop = new Date(range.endDate + 'T00:00:00');
+    while (cur <= stop) {
+      dates.push(cur.toISOString().split('T')[0]);
+      cur.setDate(cur.getDate() + 1);
+    }
+  } else {
+    // All time
+    dates = Object.keys(byDate).sort();
+  }
+
+  // Ensure every date in dates exists in byDate
+  dates.forEach(d => {
+    if (!byDate[d]) byDate[d] = { facebook: 0, twitter: 0, instagram: 0, website: 0, total: 0 };
+  });
+
+  if (dates.length === 0) {
+    renderPlaceholderTrend();
+    updateDateChip(filtered, range);
+    return;
+  }
+
+  const platforms = ['facebook', 'twitter', 'instagram', 'website'];
+  const labels = dates.map(d => {
+    const parts = d.split('-');
+    if (parts.length === 3) {
+      const dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      return dt.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    }
+    return d;
+  });
+
+  const isDark = isCurrentThemeDark();
+  const pointBorder = isDark ? '#111827' : '#ffffff';
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.04)';
+  const legendColor = isDark ? '#e5e7eb' : '#4b5563';
+  const tooltipBg = isDark ? '#111827' : '#1e2235';
+  const tooltipBorder = isDark ? '#374151' : '#e8eaf2';
+
+  const datasets = [
+    {
+      label: 'Total',
+      data: dates.map(d => byDate[d].total),
+      borderColor: '#6366f1',
+      backgroundColor: 'rgba(99,102,241,0.08)',
+      borderWidth: 2.5,
+      fill: true,
+      tension: 0.35,
+      pointStyle: 'circle',
+      pointRadius: 0,
+      pointHoverRadius: 6,
+      pointHitRadius: 16,
+      pointBackgroundColor: '#6366f1',
+      pointBorderColor: pointBorder,
+      pointBorderWidth: 2,
+      pointHoverBackgroundColor: '#6366f1',
+      pointHoverBorderColor: pointBorder,
+      pointHoverBorderWidth: 2,
+    },
+    ...platforms.map(p => ({
+      label: p.charAt(0).toUpperCase() + p.slice(1),
+      data: dates.map(d => byDate[d][p] || 0),
+      borderColor: PLATFORM_COLORS[p].fill,
+      backgroundColor: PLATFORM_COLORS[p].soft,
+      borderWidth: 1.5,
+      fill: false,
+      tension: 0.35,
+      pointStyle: 'circle',
+      pointRadius: 0,
+      pointHoverRadius: 5,
+      pointHitRadius: 14,
+      pointBackgroundColor: PLATFORM_COLORS[p].fill,
+      pointBorderColor: pointBorder,
+      pointBorderWidth: 2,
+      pointHoverBackgroundColor: PLATFORM_COLORS[p].fill,
+      pointHoverBorderColor: pointBorder,
+      pointHoverBorderWidth: 2,
+    }))
+  ];
+
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  if (trendChartInstance) trendChartInstance.destroy();
+  trendChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { boxWidth: 9, boxHeight: 9, borderRadius: 4, usePointStyle: true, pointStyleWidth: 9, padding: 12, color: legendColor, font: { size: 10, family: 'Poppins' } }
+        },
+        tooltip: {
+          backgroundColor: tooltipBg,
+          titleColor: '#f1f5f9',
+          bodyColor: '#94a3b8',
+          borderColor: tooltipBorder,
+          borderWidth: 0.5,
+          padding: 10,
+          cornerRadius: 6,
+          titleFont: { size: 10, family: 'Poppins' },
+          bodyFont: { size: 10, family: 'Poppins' },
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor, drawBorder: false },
+          ticks: { font: { size: 10, family: 'Poppins' }, maxRotation: 0, maxTicksLimit: 8 }
+        },
+        y: {
+          grid: { color: gridColor, drawBorder: false },
+          ticks: { font: { size: 10, family: 'Poppins' }, stepSize: 1, precision: 0 },
+          beginAtZero: true,
+        }
+      }
+    }
+  });
+
+  updateDateChip(filtered, range);
+}
+
+
+function renderPlaceholderTrend() {
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  if (trendChartInstance) trendChartInstance.destroy();
+  // Show empty line chart
+  const labels = ['—', '—', '—', '—', '—'];
+  trendChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'Total', data: [0,0,0,0,0], borderColor: 'rgba(99,102,241,0.3)', fill: false }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } }
+    }
+  });
+}
+
+// ─── Platform donut & Reference Styling ────────────
+let currentHoveredPlatformIndex = null;
+
+function setPlatformHover(index) {
+  if (currentHoveredPlatformIndex === index) return;
+  currentHoveredPlatformIndex = index;
+
+  if (!platformDonutInstance) return;
+
+  const isDark = isCurrentThemeDark();
+  const grayColor = isDark ? '#334155' : '#cbd5e1';
+  const order = ['facebook', 'twitter', 'instagram', 'website'];
+  const labels = ['Facebook', 'Twitter / X', 'Instagram', 'Website'];
+  const baseColors = order.map(p => PLATFORM_COLORS[p].fill);
+  const ds = platformDonutInstance.data.datasets[0];
+  if (!ds) return;
+
+  if (index !== null && index !== undefined && index >= 0) {
+    // When a segment is hovered:
+    // 1. Hovered segment stays colorful and expands (offset: 12)
+    // 2. All other segments turn to gray and stay at normal size (offset: 0)
+    ds.backgroundColor = baseColors.map((c, i) => (i === index ? c : grayColor));
+    ds.offset = baseColors.map((_, i) => (i === index ? 12 : 0));
+
+    // Update center label smoothly
+    const valEl = document.getElementById('donutTotal');
+    const labelEl = document.getElementById('donutLabel');
+    if (valEl && ds.data) valEl.textContent = ds.data[index];
+    if (labelEl) labelEl.textContent = labels[index].toUpperCase();
+  } else {
+    // Reset to normal vibrant colors & 0 offset
+    ds.backgroundColor = baseColors;
+    ds.offset = baseColors.map(() => 0);
+
+    const valEl = document.getElementById('donutTotal');
+    const labelEl = document.getElementById('donutLabel');
+    const total = ds.data.reduce((a, b) => a + b, 0);
+    if (valEl) valEl.textContent = total;
+    if (labelEl) labelEl.textContent = 'TOTAL';
+  }
+
+  // Update legend pill cards highlight/dim state
+  const pillCards = document.querySelectorAll('.plat-pill-card');
+  pillCards.forEach((card, i) => {
+    if (index !== null && index !== undefined && index >= 0) {
+      if (i === index) {
+        card.classList.add('is-active');
+        card.classList.remove('is-dimmed');
+      } else {
+        card.classList.remove('is-active');
+        card.classList.add('is-dimmed');
+      }
+    } else {
+      card.classList.remove('is-active');
+      card.classList.remove('is-dimmed');
+    }
+  });
+
+  platformDonutInstance.update('none');
+}
+
+function renderPlatformDonut(platforms) {
+  const order = ['facebook', 'twitter', 'instagram', 'website'];
+  const labels = ['Facebook', 'Twitter / X', 'Instagram', 'Website'];
+  const data = order.map(p => platforms[p] || 0);
+  const colors = order.map(p => PLATFORM_COLORS[p].fill);
+  const total = data.reduce((a, b) => a + b, 0);
+
+  const totalEl = document.getElementById('donutTotal');
+  if (totalEl) totalEl.textContent = total;
+  const labelEl = document.getElementById('donutLabel');
+  if (labelEl) labelEl.textContent = 'TOTAL';
+
+  const isDark = isCurrentThemeDark();
+  const canvasEl = document.getElementById('platformDonut');
+  const ctx = canvasEl.getContext('2d');
+  if (platformDonutInstance) platformDonutInstance.destroy();
+
+  platformDonutInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: isDark ? '#111827' : '#ffffff',
+        borderRadius: 10,
+        spacing: 6,
+        offset: [0, 0, 0, 0],
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '68%',
+      animation: {
+        animateScale: true,
+        animateRotate: true,
+        duration: 900
+      },
+      onHover: (event, elements) => {
+        if (event && event.native && event.native.target) {
+          event.native.target.style.cursor = (elements && elements.length) ? 'pointer' : 'default';
+        }
+        const newIndex = (elements && elements.length > 0) ? elements[0].index : null;
+        setPlatformHover(newIndex);
+      },
+      onClick: (evt, elements) => {
+        if (elements && elements.length > 0) {
+          const idx = elements[0].index;
+          drilldownPlatform(order[idx]);
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e2235',
+          titleColor: '#f1f5f9',
+          bodyColor: '#94a3b8',
+          cornerRadius: 8,
+          padding: 10,
+          callbacks: {
+            label: (ctx) => `${ctx.label}: ${ctx.parsed} (${total > 0 ? Math.round(ctx.parsed/total*100) : 0}%) — Klik untuk lihat hasil`
+          }
+        }
+      }
+    }
+  });
+
+  // Reset hover state when mouse leaves canvas
+  canvasEl.onmouseleave = () => setPlatformHover(null);
+
+  // Legend pill cards
+  const legend = document.getElementById('platformLegend');
+  legend.innerHTML = order.map((p, i) => {
+    return `
+      <div class="plat-pill-card" 
+           id="pill-${p}"
+           data-platform="${p}"
+           data-index="${i}"
+           onmouseenter="setPlatformHover(${i})"
+           onmouseleave="setPlatformHover(null)"
+           onclick="drilldownPlatform('${p}')"
+           title="Klik untuk filter ${labels[i]}">
+        <div class="plat-pill-left">
+          <div class="plat-pill-icon" style="background:${PLATFORM_COLORS[p].fill};">
+            ${PLATFORM_ICONS_SVG[p]}
+          </div>
+          <div class="plat-pill-name">${labels[i]}</div>
+        </div>
+        <div class="plat-pill-badge">
+          ${data[i]}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Platform SVG icons mapping — Exactly identical across all boxes
+const PLATFORM_ICONS_SVG = {
+  facebook: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`,
+  twitter: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
+  instagram: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`,
+  website: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path></svg>`
+};
+
+// ─── Platform horizontal bars ─────────────────────
+function renderPlatformBars(platforms, total) {
+  const order = [
+    { key: 'facebook', label: 'Facebook' },
+    { key: 'twitter', label: 'Twitter / X' },
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'website', label: 'Website' },
+  ];
+  const el = document.getElementById('platformBarsEl');
+  if (!el) return;
+  el.innerHTML = order.map(({ key, label }) => {
+    const val = platforms[key] || 0;
+    const pct = total > 0 ? Math.round(val / total * 100) : 0;
+    return `
+      <div class="pbar-item" onclick="drilldownPlatform('${key}')" style="cursor:pointer;" title="Klik untuk melihat isu ${label}">
+        <div class="pbar-icon" style="color:${PLATFORM_COLORS[key].fill}">${PLATFORM_ICONS_SVG[key]}</div>
+        <div class="pbar-name">${label}</div>
+        <div class="pbar-track">
+          <div class="pbar-fill" style="width:${pct}%; background:${PLATFORM_COLORS[key].fill}"></div>
+        </div>
+        <div class="pbar-count" style="color:${PLATFORM_COLORS[key].fill}">${val}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── Sentiment bar chart (grouped by platform) ────
+function renderSentimentBarChart(results) {
+  const platforms = ['facebook', 'twitter', 'instagram', 'website'];
+  const sentiments = ['positif', 'negatif', 'neutral'];
+
+  // Build data: for each platform, count sentiments
+  const matrix = {};
+  platforms.forEach(p => {
+    matrix[p] = { positif: 0, negatif: 0, neutral: 0 };
+  });
+  results.forEach(r => {
+    if (!r.platform || !platforms.includes(r.platform)) return;
+    const s = r.sentiment || 'neutral';
+    if (matrix[r.platform] && matrix[r.platform][s] !== undefined) {
+      matrix[r.platform][s]++;
+    } else if (matrix[r.platform]) {
+      matrix[r.platform].neutral++;
+    }
+  });
+
+  const labels = ['Facebook', 'Twitter', 'Instagram', 'Website'];
+  const ctx = document.getElementById('sentimentBarChart').getContext('2d');
+  if (sentimentBarInstance) sentimentBarInstance.destroy();
+  sentimentBarInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Positif',
+          data: platforms.map(p => matrix[p].positif),
+          backgroundColor: 'rgba(34,197,94,0.75)',
+          borderRadius: 4,
+          borderSkipped: false,
+        },
+        {
+          label: 'Negatif',
+          data: platforms.map(p => matrix[p].negatif),
+          backgroundColor: 'rgba(239,68,68,0.75)',
+          borderRadius: 4,
+          borderSkipped: false,
+        },
+        {
+          label: 'Netral',
+          data: platforms.map(p => matrix[p].neutral),
+          backgroundColor: 'rgba(148,163,184,0.6)',
+          borderRadius: 4,
+          borderSkipped: false,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { boxWidth: 8, boxHeight: 8, borderRadius: 4, usePointStyle: true, padding: 10, color: isCurrentThemeDark() ? '#e5e7eb' : '#4b5563', font: { size: 10, family: 'Poppins' } }
+        },
+        tooltip: {
+          backgroundColor: isCurrentThemeDark() ? '#111827' : '#1e2235',
+          titleColor: '#f1f5f9',
+          bodyColor: '#94a3b8',
+          borderColor: isCurrentThemeDark() ? '#374151' : '#e8eaf2',
+          borderWidth: 0.5,
+          cornerRadius: 6,
+          padding: 8,
+          titleFont: { size: 10, family: 'Poppins' },
+          bodyFont: { size: 10, family: 'Poppins' },
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10, family: 'Poppins' }, color: isCurrentThemeDark() ? '#9ca3af' : '#8b93a7' }
+        },
+        y: {
+          grid: { color: isCurrentThemeDark() ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0,0,0,0.04)', drawBorder: false },
+          ticks: { font: { size: 10, family: 'Poppins' }, color: isCurrentThemeDark() ? '#9ca3af' : '#8b93a7', precision: 0, stepSize: 1 },
+          beginAtZero: true,
+        }
+      }
+    }
+  });
+}
+
+// ─── Sentiment donut ─────────────────────
+let currentHoveredSentIndex = null;
+let currentSentData = null;
+
+function setSentimentHover(index) {
+  if (currentHoveredSentIndex === index) return;
+  currentHoveredSentIndex = index;
+  if (!sentimentDonutInstance || !currentSentData) return;
+
+  const sents = currentSentData;
+  const isDark = isCurrentThemeDark();
+  const grayColor = isDark ? '#334155' : '#cbd5e1';
+  const baseColors = sents.map(s => s.color);
+  const ds = sentimentDonutInstance.data.datasets[0];
+  if (!ds) return;
+
+  const pctEl = document.getElementById('sentDonutPct');
+  const labelEl = document.getElementById('sentDonutLabel');
+
+  if (index !== null && index !== undefined && index >= 0) {
+    ds.backgroundColor = baseColors.map((c, i) => (i === index ? c : grayColor));
+    ds.offset = baseColors.map((_, i) => (i === index ? 10 : 0));
+    if (pctEl) {
+      pctEl.textContent = sents[index].pct + '%';
+      pctEl.style.color = sents[index].color;
+    }
+    if (labelEl) {
+      labelEl.textContent = sents[index].label.toUpperCase();
+      labelEl.style.color = sents[index].color;
+    }
+  } else {
+    ds.backgroundColor = baseColors;
+    ds.offset = [0, 0, 0];
+    if (pctEl) {
+      pctEl.textContent = sents[0].pct + '%';
+      pctEl.style.color = sents[0].color;
+    }
+    if (labelEl) {
+      labelEl.textContent = sents[0].label.toUpperCase();
+      labelEl.style.color = 'var(--text-muted)';
+    }
+  }
+  sentimentDonutInstance.update('none');
+}
+
+function renderSentimentDonut(pos, neg, neu) {
+  const total = pos + neg + neu;
+  const posPct = total > 0 ? Math.round(pos / total * 100) : 0;
+  const negPct = total > 0 ? Math.round(neg / total * 100) : 0;
+  const neuPct = total > 0 ? Math.round(neu / total * 100) : 0;
+
+  const sents = [
+    { key: 'positif', label: 'Positif', val: pos, pct: posPct, color: '#22c55e', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><polyline points="20 6 9 17 4 12"></polyline></svg>` },
+    { key: 'negatif', label: 'Negatif', val: neg, pct: negPct, color: '#ef4444', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>` },
+    { key: 'neutral', label: 'Netral',  val: neu, pct: neuPct, color: '#94a3b8', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><line x1="5" y1="12" x2="19" y2="12"></line></svg>` }
+  ];
+  currentSentData = sents;
+
+  const pctEl = document.getElementById('sentDonutPct');
+  if (pctEl) {
+    pctEl.textContent = posPct + '%';
+    pctEl.style.color = '#22c55e';
+  }
+  const labelEl = document.getElementById('sentDonutLabel');
+  if (labelEl) {
+    labelEl.textContent = 'POSITIF';
+    labelEl.style.color = 'var(--text-muted)';
+  }
+
+  const canvas = document.getElementById('sentimentDonut');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (sentimentDonutInstance) sentimentDonutInstance.destroy();
+
+  const isDark = isCurrentThemeDark();
+  sentimentDonutInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Positif', 'Negatif', 'Netral'],
+      datasets: [{
+        data: [pos, neg, neu],
+        backgroundColor: sents.map(s => s.color),
+        borderWidth: 0,
+        hoverBorderWidth: 2,
+        hoverBorderColor: isDark ? '#111827' : '#ffffff',
+        borderRadius: 10,
+        spacing: 6,
+        offset: [0, 0, 0]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '68%',
+      animation: {
+        animateScale: true,
+        animateRotate: true,
+        duration: 900
+      },
+      onHover: (event, elements) => {
+        if (event && event.native && event.native.target) {
+          event.native.target.style.cursor = (elements && elements.length) ? 'pointer' : 'default';
+        }
+        const newIndex = (elements && elements.length > 0) ? elements[0].index : null;
+        setSentimentHover(newIndex);
+      },
+      onClick: (evt, elements) => {
+        if (elements && elements.length > 0) {
+          const idx = elements[0].index;
+          drilldownSentiment(sents[idx].key);
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e2235',
+          titleColor: '#f1f5f9',
+          bodyColor: '#94a3b8',
+          cornerRadius: 8,
+          padding: 10,
+          callbacks: {
+            label: (ctx) => `${ctx.label}: ${ctx.parsed} (${total > 0 ? Math.round(ctx.parsed/total*100) : 0}%) — Klik untuk filter`
+          }
+        }
+      }
+    }
+  });
+
+  canvas.onmouseleave = () => setSentimentHover(null);
+
+  const legendEl = document.getElementById('sentLegend');
+  if (legendEl) {
+    legendEl.innerHTML = sents.map((s, i) => `
+      <div class="plat-pill-card" 
+           id="pill-sent-${s.key}" 
+           data-index="${i}"
+           onmouseenter="setSentimentHover(${i})"
+           onmouseleave="setSentimentHover(null)"
+           onclick="drilldownSentiment('${s.key}')" 
+           title="Klik untuk filter sentimen ${s.label}">
+        <div class="plat-pill-left">
+          <div class="plat-pill-icon" style="background:${s.color};">
+            ${s.icon}
+          </div>
+          <div class="plat-pill-name">${s.label}</div>
+        </div>
+        <div class="plat-pill-badge">
+          ${s.val}
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+function drilldownSentiment(sentiment) {
+  window.location.href = `/results?sentiment=${sentiment}`;
+}
+
+// ─── Toggle View: Bar vs Pie for Sentiment ─────────
+let currentSentimentView = 'bar'; // 'bar' or 'pie'
+
+function setSentimentView(mode) {
+  currentSentimentView = mode;
+  const barContainer = document.getElementById('sentimentBarContainer');
+  const pieContainer = document.getElementById('sentimentPieContainer');
+  const btnBar = document.getElementById('btnSentimentBar');
+  const btnPie = document.getElementById('btnSentimentPie');
+
+  if (mode === 'pie') {
+    if (barContainer) barContainer.style.display = 'none';
+    if (pieContainer) pieContainer.style.display = 'block';
+    if (btnBar) btnBar.classList.remove('active');
+    if (btnPie) btnPie.classList.add('active');
+    if (sentimentDonutInstance) {
+      setTimeout(() => {
+        sentimentDonutInstance.resize();
+        sentimentDonutInstance.update();
+      }, 50);
+    }
+  } else {
+    if (pieContainer) pieContainer.style.display = 'none';
+    if (barContainer) barContainer.style.display = 'block';
+    if (btnPie) btnPie.classList.remove('active');
+    if (btnBar) btnBar.classList.add('active');
+    if (sentimentBarInstance) {
+      setTimeout(() => {
+        sentimentBarInstance.resize();
+        sentimentBarInstance.update();
+      }, 50);
+    }
+  }
+}
+
+// ─── Recent news (sidebar) ─────────────────────────
+function renderRecentNews(items) {
+  const el = document.getElementById('rpNewsList');
+  if (!items || items.length === 0) {
+    el.innerHTML = `<div style="font-size:0.78rem; color:var(--text-muted); text-align:center; padding:16px;">Belum ada berita. Mulai monitoring!</div>`;
+    return;
+  }
+
+  el.innerHTML = items.map(item => {
+    const title = (item.title || '').replace(/ - [^-]+$/, '').substring(0, 80);
+    const sentClass = item.sentiment || 'neutral';
+    const sentLabel = sentClass === 'positif' ? 'Positif' : sentClass === 'negatif' ? 'Negatif' : 'Netral';
+    const svgIcon = PLATFORM_ICONS_SVG[item.platform] || PLATFORM_ICONS_SVG.website;
+
+    let confPct = null;
+    if (item.nlp_sentiment && typeof item.nlp_sentiment.confidence === 'number') {
+      confPct = item.nlp_sentiment.confidence <= 1 ? Math.round(item.nlp_sentiment.confidence * 100) : Math.round(item.nlp_sentiment.confidence);
+    } else if (typeof item.confidence === 'number') {
+      confPct = item.confidence <= 1 ? Math.round(item.confidence * 100) : Math.round(item.confidence);
+    }
+
+    return `
+      <a class="news-item" href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">
+        <div class="news-platform-icon ${item.platform}">${svgIcon}</div>
+        <div class="news-content">
+          <div class="news-title">${escapeHtml(title)}</div>
+          <div class="news-meta" style="flex-wrap:wrap; gap:4px;">
+            <span>${formatTime(item.scanned_at)}</span>
+            ${item.sentiment ? `<span class="news-sentiment ${sentClass}" title="${confPct ? `Tingkat Keyakinan: ${confPct}%` : ''}">${sentLabel}${confPct ? ` <small style="font-weight:700; opacity:0.9;">${confPct}%</small>` : ''}</span>` : ''}
+          </div>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+// ─── Date range dropdown functions ─────────────────
+function toggleDateRangeDropdown(e) {
+  if (e) e.stopPropagation();
+  const dd = document.getElementById('dateRangeDropdown');
+  const chip = document.getElementById('dateChip');
+  if (!dd) return;
+  const isShow = dd.classList.contains('show');
+  if (isShow) {
+    dd.classList.remove('show');
+    if (chip) chip.classList.remove('active');
+  } else {
+    dd.classList.add('show');
+    if (chip) chip.classList.add('active');
+  }
+}
+
+document.addEventListener('click', () => {
+  const dd = document.getElementById('dateRangeDropdown');
+  const chip = document.getElementById('dateChip');
+  if (dd) dd.classList.remove('show');
+  if (chip) chip.classList.remove('active');
+});
+
+function setDateRangePreset(preset) {
+  currentDateRange = { type: preset, startDate: null, endDate: null };
+  
+  document.querySelectorAll('.date-preset-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-range') === preset);
+  });
+
+  renderTrendChart(allResults, currentDateRange);
+
+  const dd = document.getElementById('dateRangeDropdown');
+  const chip = document.getElementById('dateChip');
+  if (dd) dd.classList.remove('show');
+  if (chip) chip.classList.remove('active');
+}
+
+function applyCustomDateRange() {
+  const start = document.getElementById('customStartDate').value;
+  const end = document.getElementById('customEndDate').value;
+
+  if (!start || !end) {
+    showToast('Pilih tanggal mulai dan tanggal akhir', 'error');
+    return;
+  }
+  if (new Date(start) > new Date(end)) {
+    showToast('Tanggal mulai tidak boleh melebihi tanggal akhir', 'error');
+    return;
+  }
+
+  currentDateRange = { type: 'custom', startDate: start, endDate: end };
+
+  document.querySelectorAll('.date-preset-btn').forEach(btn => btn.classList.remove('active'));
+
+  renderTrendChart(allResults, currentDateRange);
+
+  const dd = document.getElementById('dateRangeDropdown');
+  const chip = document.getElementById('dateChip');
+  if (dd) dd.classList.remove('show');
+  if (chip) chip.classList.remove('active');
+  
+  showToast('Rentang tanggal kustom diterapkan', 'success');
+}
+
+// ─── Date chip update ──────────────────────────────
+function updateDateChip(filteredResults, range = currentDateRange) {
+  const chipText = document.getElementById('dateChipText');
+  const badge = document.getElementById('latestScanBadge');
+  if (!chipText) return;
+
+  const now = new Date();
+  const fmt = d => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' });
+
+  if (range.type === 'today') {
+    range.type = '7d';
+  }
+  if (range.type === '7d') {
+    const start = new Date(now.getTime() - 6 * 24 * 3600 * 1000);
+    chipText.textContent = `${fmt(start)} – ${fmt(now)}`;
+    if (badge) badge.textContent = '7 Hari';
+  } else if (range.type === '30d') {
+    const start = new Date(now.getTime() - 29 * 24 * 3600 * 1000);
+    chipText.textContent = `${fmt(start)} – ${fmt(now)}`;
+    if (badge) badge.textContent = '30 Hari';
+  } else if (range.type === 'this_month') {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    chipText.textContent = `${fmt(start)} – ${fmt(now)}`;
+    if (badge) badge.textContent = 'Bulan Ini';
+  } else if (range.type === 'custom' && range.startDate && range.endDate) {
+    const start = new Date(range.startDate + 'T00:00:00');
+    const end = new Date(range.endDate + 'T00:00:00');
+    chipText.textContent = `${fmt(start)} – ${fmt(end)}`;
+    if (badge) badge.textContent = 'Kustom';
+  } else {
+    // all
+    const dates = (allResults || []).map(r => r.scanned_at).filter(Boolean).sort();
+    if (dates.length > 0) {
+      const first = new Date(dates[0]);
+      const last = new Date(dates[dates.length - 1]);
+      chipText.textContent = `${fmt(first)} – ${fmt(last)}`;
+    } else {
+      chipText.textContent = 'Semua Data';
+    }
+    if (badge) badge.textContent = 'Semua';
+  }
+}
+
+// ─── Monitor panel (right panel) ──────────────────
+function updateMonitorPanel(status) {
+  // Navbar status
+  const navPill = document.getElementById('navStatusPill');
+  const navLabel = document.getElementById('navStatusLabel');
+  if (status.isRunning) {
+    navPill.className = 'nav-status-pill running';
+    navLabel.textContent = status.scanInProgress ? 'SCANNING...' : 'MONITORING';
+  } else {
+    navPill.className = 'nav-status-pill stopped';
+    navLabel.textContent = 'STOPPED';
+  }
+
+  // Right-panel controls
+  const dot   = document.getElementById('rpMonDot');
+  const label = document.getElementById('rpMonLabel');
+  const btnStart = document.getElementById('rpBtnStart');
+  const btnStop  = document.getElementById('rpBtnStop');
+
+  if (status.isRunning) {
+    dot.className = 'monitor-mini-dot running';
+    label.textContent = status.scanInProgress ? 'Scanning...' : 'Aktif';
+    btnStart.style.display = 'none';
+    btnStop.style.display  = '';
+  } else {
+    dot.className = 'monitor-mini-dot';
+    label.textContent = 'Tidak Aktif';
+    btnStart.style.display = '';
+    btnStop.style.display  = 'none';
+  }
+
+  const rpInterval = document.getElementById('rpInterval');
+  const rpLastRun = document.getElementById('rpLastRun');
+
+  if (selectedMonitorId && selectedMonitorId !== 'all') {
+    const cur = monitorsList.find(m => m.id == selectedMonitorId);
+    if (cur) {
+      if (rpInterval) rpInterval.textContent = `${cur.polling_interval} jam`;
+      if (rpLastRun) rpLastRun.textContent = cur.last_polled_at ? formatTime(cur.last_polled_at) : 'Belum pernah';
+    }
+  } else {
+    if (rpInterval) rpInterval.textContent = 'Per Monitor';
+    const lastScan = status.lastRunTime || status.lastScan?.started_at;
+    if (rpLastRun) rpLastRun.textContent = lastScan ? formatTime(lastScan) : 'Belum ada';
+  }
+}
+
+// ─── Animate value ─────────────────────────────────
+function animateValueEl(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const current = parseInt(el.textContent) || 0;
+  if (current === target) { el.textContent = target.toLocaleString(); return; }
+  const duration = 600;
+  const start = performance.now();
+  function update(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(current + (target - current) * e).toLocaleString();
+    if (p < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// Re-use startMonitor / stopMonitor / runNow from app.js
+// (they are already defined there)
+
+</script>
+</body>
+</html>

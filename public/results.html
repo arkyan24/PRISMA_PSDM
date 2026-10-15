@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PIJAR — Aktivitas monitoring isu real-time dari berbagai platform.">
+  <title>PIJAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Aktivitas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://db.onlinewebfonts.com/c/ef458b9e694c0ea230e8d52489363235?family=LT+Internet" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg>">
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('pijar_theme');
+        if (!theme) {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.classList.add('dark-theme');
+        }
+        if (localStorage.getItem('pijar_sidebar_collapsed') === 'true') {
+          document.documentElement.classList.add('sidebar-collapsed');
+        }
+      } catch(e) {}
+    })();
+  </script>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div><!-- ── Navbar ─────────────────────────────────────── -->
+<nav class="navbar">
+  <!-- YouTube Studio Style Hamburger Button -->
+  <button type="button" class="nav-hamburger-btn" onclick="toggleSidebarCollapse()" id="navHamburgerBtn" title="Ciutkan menu" aria-label="Menu navigasi">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
+  <a href="/dashboard" class="nav-brand" title="PIJAR">
+    <div class="nav-brand-logo">
+      <img src="/images/logo.png" alt="Logo PIJAR" class="nav-brand-img">
+    </div>
+    <span class="nav-brand-name">PIJAR</span>
+  </a>
+
+  <div class="nav-right">
+    <div class="nav-status-pill stopped" id="navStatusPill">
+      <span class="status-dot"></span>
+      <span id="navStatusLabel">STOPPED</span>
+    </div>
+    <button type="button" class="nav-theme-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Mode Tampilan" aria-label="Beralih Mode Gelap/Terang">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+    <button class="nav-logout-btn" onclick="logout()" title="Keluar / Logout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+      <span>Keluar</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── Layout ─────────────────────────────────────── -->
+<div class="layout">
+  <!-- Sidebar (YouTube Studio Style) -->
+  <aside class="sidebar">
+    <!-- Channel / Brand profile header -->
+    <div class="sidebar-brand-profile">
+      <div class="sidebar-avatar-wrap">
+        <img src="/images/logo.png" alt="Logo PIJAR" class="sidebar-avatar-img">
+      </div>
+      <div class="sidebar-profile-title">PIJAR</div>
+      <div class="sidebar-profile-sub">Pusat Syiar Digital Muhammadiyah</div>
+    </div>
+
+    <div class="sidebar-nav">
+      <a href="/dashboard" class="sidebar-item" title="Dasbor">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </span>
+        <span class="sidebar-item-text">Dasbor</span>
+      </a>
+      <a href="/monitor" class="sidebar-item" title="Monitor">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </span>
+        <span class="sidebar-item-text">Monitor</span>
+      </a>
+      <a href="/results" class="sidebar-item active" title="Aktivitas">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </span>
+        <span class="sidebar-item-text">Aktivitas</span>
+      </a>
+      <a href="/settings" class="sidebar-item" title="Pengaturan">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </span>
+        <span class="sidebar-item-text">Pengaturan</span>
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-item" title="Bantuan" style="cursor:pointer">
+        <span class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </span>
+        <span class="sidebar-item-text">Bantuan</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Content area -->
+  <div class="content">
+    <main class="main fade-in">
+      
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Aktivitas</h1>
+          <p class="page-title-sub">Semua aktivitas dan isu yang ditemukan dari pencarian, dikategorikan per platform</p>
+        </div>
+      </div>
+
+      <!-- Platform Tabs -->
+      <div class="tabs" id="platformTabs">
+        <button class="tab active" data-platform="all" onclick="filterPlatform('all', this)">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10m5 10V4m5 16v-7m5 7V7"></path></svg> Semua
+          <span class="tab-badge" id="badgeAll">0</span>
+        </button>
+        <button class="tab" data-platform="facebook" onclick="filterPlatform('facebook', this)">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21v-8h3l.5-4H14V7c0-1.2.4-2 2-2h2V1.4C17.2 1.2 16.1 1 15 1c-3.3 0-5 2-5 5.5V9H7v4h3v8h4z"></path></svg> Facebook
+          <span class="tab-badge" id="badgeFacebook">0</span>
+        </button>
+        <button class="tab" data-platform="twitter" onclick="filterPlatform('twitter', this)">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 5.9a8 8 0 0 1-2.4.7 4.2 4.2 0 0 0 1.8-2.3 8.4 8.4 0 0 1-2.7 1 4.2 4.2 0 0 0-7.2 3.8 11.9 11.9 0 0 1-8.6-4.4 4.2 4.2 0 0 0 1.3 5.6 4.2 4.2 0 0 1-1.9-.5v.1a4.2 4.2 0 0 0 3.4 4.1 4.2 4.2 0 0 1-1.9.1 4.2 4.2 0 0 0 3.9 2.9A8.4 8.4 0 0 1 2.5 19a11.9 11.9 0 0 0 18.3-10 8.5 8.5 0 0 0 2.1-2.2z"></path></svg> Twitter / X
+          <span class="tab-badge" id="badgeTwitter">0</span>
+        </button>
+        <button class="tab" data-platform="instagram" onclick="filterPlatform('instagram', this)">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><path d="M17.5 6.5h.01"></path></svg> Instagram
+          <span class="tab-badge" id="badgeInstagram">0</span>
+        </button>
+        <button class="tab" data-platform="website" onclick="filterPlatform('website', this)">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a15 15 0 0 1 0 18m0-18a15 15 0 0 0 0 18"></path></svg> Website
+          <span class="tab-badge" id="badgeWebsite">0</span>
+        </button>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <select class="form-input" id="filterMonitor" onchange="applyFilters()" style="max-width: 220px;">
+          <option value="">Semua Monitor</option>
+        </select>
+        <select class="form-input" id="filterSentiment" onchange="applyFilters()" style="max-width: 160px;">
+          <option value="">Semua Sentimen</option>
+          <option value="positif">Positif (IndoBERT)</option>
+          <option value="negatif">Negatif (IndoBERT)</option>
+          <option value="neutral">Netral</option>
+        </select>
+        <select class="form-input" id="filterSort" onchange="applyFilters()" style="max-width: 210px;" title="Urutkan Berita">
+          <option value="newest">Urutkan: Terbaru</option>
+          <option value="oldest">Urutkan: Terlama</option>
+          <option value="title_asc">Judul: A - Z</option>
+          <option value="title_desc">Judul: Z - A</option>
+        </select>
+        <label class="toggle-switch-wrap" title="Saring berita serupa agar tidak tampil berulang">
+          <input type="checkbox" id="toggleDedup" checked onchange="applyFilters()">
+          <span>Kelompokkan Berita Serupa</span>
+        </label>
+        <button class="btn btn-outline btn-sm" onclick="applyFilters()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          Refresh
+        </button>
+        <span style="margin-left: auto; font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">
+          Menampilkan <strong id="resultCountDisplay" style="color:var(--text);">0</strong> aktivitas
+        </span>
+      </div>
+
+      <div class="result-search" role="search">
+        <svg class="result-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="search" id="resultSearchInput" aria-label="Cari berita" placeholder="Cari judul, ringkasan, atau kata kunci..." autocomplete="off">
+        <button type="button" class="result-search-clear" id="clearResultSearch" aria-label="Hapus pencarian" title="Hapus pencarian" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <!-- Results List -->
+      <div class="result-list" id="resultsList">
+        <div class="empty-state">
+          <div class="empty-state-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M8 12h8m-8 4h8"></path></svg></div>
+          <div class="empty-state-title">Belum ada aktivitas</div>
+          <div class="empty-state-desc">Mulai monitoring dari Dashboard untuk melihat aktivitas pencarian isu di sini.</div>
+        </div>
+      </div>
+
+      <!-- Load More -->
+      <div style="text-align: center; margin-top: 32px;" id="loadMoreContainer" hidden>
+        <button class="btn btn-outline" id="btnLoadMore" onclick="loadMoreResults()">
+          Muat Lebih Banyak
+        </button>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  let currentPlatform = 'all';
+  let currentOffset = 0;
+  let searchDebounceTimer = null;
+  const PAGE_SIZE = 50;
+
+  function filterPlatform(platform, tabEl) {
+    currentPlatform = platform;
+    currentOffset = 0;
+
+    // Update active tab
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (tabEl) {
+      tabEl.classList.add('active');
+    } else {
+      const targetTab = document.querySelector(`.tab[data-platform="${platform}"]`);
+      if (targetTab) targetTab.classList.add('active');
+    }
+
+    applyFilters();
+  }
+
+  function applyFilters() {
+    currentOffset = 0;
+    const monitorId = document.getElementById('filterMonitor').value;
+    loadBadges(monitorId);
+    loadResults();
+  }
+
+  function scheduleSearch() {
+    const input = document.getElementById('resultSearchInput');
+    document.getElementById('clearResultSearch').hidden = !input.value;
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(applyFilters, 250);
+  }
+
+  function clearResultSearch() {
+    const input = document.getElementById('resultSearchInput');
+    input.value = '';
+    document.getElementById('clearResultSearch').hidden = true;
+    applyFilters();
+    input.focus();
+  }
+
+  async function loadResults() {
+    const monitorId = document.getElementById('filterMonitor').value;
+    const sentiment = document.getElementById('filterSentiment').value;
+    const sortBy = document.getElementById('filterSort') ? document.getElementById('filterSort').value : 'newest';
+    const dedup = document.getElementById('toggleDedup') ? document.getElementById('toggleDedup').checked : true;
+    const search = document.getElementById('resultSearchInput').value.trim();
+
+    const params = new URLSearchParams({
+      platform: currentPlatform,
+      limit: PAGE_SIZE,
+      offset: currentOffset,
+      sort_by: sortBy,
+      dedup: dedup ? 'true' : 'false'
+    });
+    if (monitorId) params.set('monitor_id', monitorId);
+    if (sentiment) params.set('sentiment', sentiment);
+    if (search) params.set('search', search);
+
+    try {
+      const res = await api(`/api/results?${params}`);
+      const container = document.getElementById('resultsList');
+
+      if (currentOffset === 0) {
+        container.innerHTML = '';
+      }
+
+      if (res.data.length === 0 && currentOffset === 0) {
+        container.innerHTML = `
+          <div class="empty-state fade-in">
+            <div class="empty-state-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M8 12h8m-8 4h8"></path></svg></div>
+            <div class="empty-state-title">Tidak ada aktivitas</div>
+            <div class="empty-state-desc">Belum ada aktivitas untuk filter yang dipilih.</div>
+          </div>
+        `;
+        document.getElementById('loadMoreContainer').hidden = true;
+      } else {
+        res.data.forEach(item => {
+          container.innerHTML += renderResultCard(item);
+        });
+        document.getElementById('loadMoreContainer').hidden = res.data.length < PAGE_SIZE;
+      }
+
+      document.getElementById('resultCountDisplay').textContent =
+        container.querySelectorAll('.result-card').length;
+
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  }
+
+  function loadMoreResults() {
+    currentOffset += PAGE_SIZE;
+    loadResults();
+  }
+
+  async function loadMonitorFilter() {
+    try {
+      const res = await api('/api/monitors');
+      const select = document.getElementById('filterMonitor');
+      select.innerHTML = '<option value="">Semua Monitor</option>';
+      (res.data || []).forEach(m => {
+        select.innerHTML += `<option value="${m.id}">${escapeHtml(m.name)} (${escapeHtml(m.keyword)})</option>`;
+      });
+
+      // Apply initial monitor_id from URL if any
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlMonitorId = urlParams.get('monitor_id');
+      if (urlMonitorId) {
+        select.value = urlMonitorId;
+      }
+    } catch (e) {
+      console.error('Failed to load monitors for filter:', e);
+    }
+  }
+
+  async function loadBadges(monitorId = null) {
+    try {
+      const url = monitorId ? `/api/results/stats?monitor_id=${monitorId}` : '/api/results/stats';
+      const res = await api(url);
+      const stats = res.data;
+      document.getElementById('badgeAll').textContent = stats.total || 0;
+      document.getElementById('badgeFacebook').textContent = (stats.platforms && stats.platforms.facebook) || 0;
+      document.getElementById('badgeTwitter').textContent = (stats.platforms && stats.platforms.twitter) || 0;
+      document.getElementById('badgeInstagram').textContent = (stats.platforms && stats.platforms.instagram) || 0;
+      document.getElementById('badgeWebsite').textContent = (stats.platforms && stats.platforms.website) || 0;
+    } catch (e) {
+      console.error('Failed to load badges:', e);
+    }
+  }
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', async () => {
+    loadMonitorStatus();
+
+    // Check URL parameters for drilldown from Dashboard
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPlatform = urlParams.get('platform');
+    const urlSentiment = urlParams.get('sentiment');
+    const searchInput = document.getElementById('resultSearchInput');
+    const initialSearch = urlParams.get('search') || '';
+    searchInput.value = initialSearch;
+    document.getElementById('clearResultSearch').hidden = !initialSearch;
+    searchInput.addEventListener('input', scheduleSearch);
+    searchInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        clearTimeout(searchDebounceTimer);
+        applyFilters();
+      }
+    });
+    document.getElementById('clearResultSearch').addEventListener('click', clearResultSearch);
+
+    if (urlPlatform && ['facebook', 'twitter', 'instagram', 'website'].includes(urlPlatform)) {
+      currentPlatform = urlPlatform;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      const activeTab = document.querySelector(`.tab[data-platform="${urlPlatform}"]`);
+      if (activeTab) activeTab.classList.add('active');
+    }
+
+    if (urlSentiment && document.getElementById('filterSentiment')) {
+      document.getElementById('filterSentiment').value = urlSentiment;
+    }
+
+    await loadMonitorFilter();
+    const initialMonitorId = document.getElementById('filterMonitor').value;
+    loadBadges(initialMonitorId);
+    loadResults();
+
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+      loadMonitorStatus();
+      const mid = document.getElementById('filterMonitor').value;
+      loadBadges(mid);
+    }, 30000);
+  });
+</script>
+</body>
+</html>
