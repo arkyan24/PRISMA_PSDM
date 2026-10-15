@@ -27,7 +27,7 @@ function getCookie(req, name) {
 }
 
 function getAuthToken(req) {
-  const cookieToken = getCookie(req, 'pijar_auth_token');
+  const cookieToken = getCookie(req, 'syiar_auth_token') || getCookie(req, 'pijar_auth_token');
   if (cookieToken) return cookieToken;
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -68,7 +68,10 @@ app.post('/api/auth/login', (req, res) => {
       return res.status(401).json({ success: false, message: 'Username atau password salah' });
     }
     const session = db.createSession(username);
-    res.setHeader('Set-Cookie', `pijar_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`);
+    res.setHeader('Set-Cookie', [
+      `syiar_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
+      `pijar_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`
+    ]);
     res.json({
       success: true,
       message: 'Login berhasil',
@@ -86,7 +89,10 @@ app.post('/api/auth/logout', (req, res) => {
     if (token) {
       db.destroySession(token);
     }
-    res.setHeader('Set-Cookie', 'pijar_auth_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+    res.setHeader('Set-Cookie', [
+      'syiar_auth_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+      'pijar_auth_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0'
+    ]);
     res.json({ success: true, message: 'Logout berhasil' });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });

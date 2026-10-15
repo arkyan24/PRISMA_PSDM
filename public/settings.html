@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="PIJAR — Pengaturan akun, password, tema, dan data monitoring.">
-  <title>PIJAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Pengaturan</title>
+  <meta name="description" content="SYIAR — Pengaturan akun, password, tema, dan data monitoring.">
+  <title>SYIAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Pengaturan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
   <script>
     (function() {
       try {
-        var theme = localStorage.getItem('pijar_theme');
+        var theme = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
         if (!theme) {
           theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
@@ -22,7 +22,7 @@
           document.documentElement.setAttribute('data-theme', 'dark');
           document.documentElement.classList.add('dark-theme');
         }
-        if (localStorage.getItem('pijar_sidebar_collapsed') === 'true') {
+        if ((localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true') {
           document.documentElement.classList.add('sidebar-collapsed');
         }
       } catch(e) {}
@@ -44,11 +44,11 @@
     </svg>
   </button>
 
-  <a href="/dashboard" class="nav-brand" title="PIJAR">
+  <a href="/dashboard" class="nav-brand" title="SYIAR">
     <div class="nav-brand-logo">
-      <img src="/images/logo.png" alt="Logo PIJAR" class="nav-brand-img">
+      <img src="/images/logo.png" alt="Logo SYIAR" class="nav-brand-img">
     </div>
-    <span class="nav-brand-name">PIJAR</span>
+    <span class="nav-brand-name">SYIAR</span>
   </a>
 
   <div class="nav-right">
@@ -77,9 +77,9 @@
     <!-- Channel / Brand profile header -->
     <div class="sidebar-brand-profile">
       <div class="sidebar-avatar-wrap">
-        <img src="/images/logo.png" alt="Logo PIJAR" class="sidebar-avatar-img">
+        <img src="/images/logo.png" alt="Logo SYIAR" class="sidebar-avatar-img">
       </div>
-      <div class="sidebar-profile-title">PIJAR</div>
+      <div class="sidebar-profile-title">SYIAR</div>
       <div class="sidebar-profile-sub">Pusat Syiar Digital Muhammadiyah</div>
     </div>
 
@@ -139,7 +139,7 @@
               <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
               Akun
             </h2>
-            <p class="settings-feature-description">Informasi akun yang sedang digunakan untuk mengakses PIJAR.</p>
+            <p class="settings-feature-description">Informasi akun yang sedang digunakan untuk mengakses SYIAR.</p>
           </div>
           <div class="settings-feature-body">
             <div class="account-identity">
@@ -199,7 +199,7 @@
               <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
               Tampilan & Tema
             </h2>
-            <p class="settings-feature-description">Pilih mode tampilan untuk halaman PIJAR ini dan halaman lainnya.</p>
+            <p class="settings-feature-description">Pilih mode tampilan untuk halaman SYIAR ini dan halaman lainnya.</p>
           </div>
           <div class="settings-feature-body">
             <div class="settings-theme-options" role="radiogroup" aria-label="Mode tampilan">
@@ -299,7 +299,7 @@
     loadAccount();
     document.getElementById('changePasswordForm').addEventListener('submit', changePassword);
 
-    const savedTheme = localStorage.getItem('pijar_theme');
+    const savedTheme = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
     const selectedTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     const themeOption = document.querySelector(`input[name="themePreference"][value="${selectedTheme}"]`);
     if (themeOption) themeOption.checked = true;

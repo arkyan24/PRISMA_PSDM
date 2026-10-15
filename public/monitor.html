@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="PIJAR — Kelola monitor isu digital untuk mengawasi topik/keyword secara real-time.">
-  <title>PIJAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Monitor</title>
+  <meta name="description" content="SYIAR — Kelola monitor isu digital untuk mengawasi topik/keyword secara real-time.">
+  <title>SYIAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Monitor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
   <script>
     (function() {
       try {
-        var theme = localStorage.getItem('pijar_theme');
+        var theme = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
         if (!theme) {
           theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
@@ -22,7 +22,7 @@
           document.documentElement.setAttribute('data-theme', 'dark');
           document.documentElement.classList.add('dark-theme');
         }
-        if (localStorage.getItem('pijar_sidebar_collapsed') === 'true') {
+        if ((localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true') {
           document.documentElement.classList.add('sidebar-collapsed');
         }
       } catch(e) {}
@@ -43,11 +43,11 @@
     </svg>
   </button>
 
-  <a href="/dashboard" class="nav-brand" title="PIJAR">
+  <a href="/dashboard" class="nav-brand" title="SYIAR">
     <div class="nav-brand-logo">
-      <img src="/images/logo.png" alt="Logo PIJAR" class="nav-brand-img">
+      <img src="/images/logo.png" alt="Logo SYIAR" class="nav-brand-img">
     </div>
-    <span class="nav-brand-name">PIJAR</span>
+    <span class="nav-brand-name">SYIAR</span>
   </a>
 
   <div class="nav-right">
@@ -74,9 +74,9 @@
   <aside class="sidebar">
     <div class="sidebar-brand-profile">
       <div class="sidebar-avatar-wrap">
-        <img src="/images/logo.png" alt="Logo PIJAR" class="sidebar-avatar-img">
+        <img src="/images/logo.png" alt="Logo SYIAR" class="sidebar-avatar-img">
       </div>
-      <div class="sidebar-profile-title">PIJAR</div>
+      <div class="sidebar-profile-title">SYIAR</div>
       <div class="sidebar-profile-sub">Pusat Syiar Digital Muhammadiyah</div>
     </div>
 
@@ -351,76 +351,173 @@ function renderMonitors(monitors) {
     const isActive = m.status === 'active';
     const statusClass = isActive ? 'active' : 'inactive';
     const statusLabel = isActive ? 'Aktif' : 'Nonaktif';
-    const lastPoll = m.last_polled_at ? formatTime(m.last_polled_at) : 'Belum pernah';
-    const nextPoll = m.next_poll_at && isActive ? formatTime(m.next_poll_at) : '—';
+    const lastPoll = formatRelativeLast(m.last_polled_at);
+    const nextPoll = formatRelativeNext(m.next_poll_at, isActive);
+    const tag = cleanTag(m.keyword);
 
     return `
       <div class="monitor-card ${statusClass} fade-in" id="monitor-${m.id}">
-        <!-- Decorative circle at top-right corner of box -->
-        <div class="monitor-card-corner-circle" aria-hidden="true"></div>
-
-        <div class="monitor-card-header" style="position:relative; z-index:1;">
-          <div class="monitor-card-status ${statusClass}">
-            <span class="monitor-status-dot ${statusClass}"></span>
-            <span>${statusLabel}</span>
-          </div>
-          <div class="monitor-card-actions">
-            <button class="btn-icon-mini" onclick="editMonitor(${m.id})" title="Edit">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            </button>
-            <button class="btn-icon-mini danger" onclick="openDeleteModal(${m.id})" title="Hapus Monitor">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="monitor-card-body" style="position:relative; z-index:1;">
-          <h3 class="monitor-card-name">${escapeHtml(m.name)}</h3>
-          <div class="monitor-card-keyword">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0;"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
-            <span>${escapeHtml(m.keyword)}</span>
-          </div>
-          ${m.description ? `<div class="monitor-card-desc">${escapeHtml(m.description)}</div>` : ''}
-
-          <div class="monitor-card-meta">
-            <div class="monitor-meta-item">
-              <span class="monitor-meta-label">Interval</span>
-              <span class="monitor-meta-value">${m.polling_interval}h</span>
-            </div>
-            <div class="monitor-meta-item">
-              <span class="monitor-meta-label">Hasil</span>
-              <span class="monitor-meta-value">${(m.result_count || 0).toLocaleString()}</span>
-            </div>
-            <div class="monitor-meta-item">
-              <span class="monitor-meta-label">Terakhir</span>
-              <span class="monitor-meta-value">${lastPoll}</span>
-            </div>
-            <div class="monitor-meta-item">
-              <span class="monitor-meta-label">Berikutnya</span>
-              <span class="monitor-meta-value">${nextPoll}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="monitor-card-footer" style="position:relative; z-index:1;">
-          <label class="kw-toggle" title="${isActive ? 'Nonaktifkan' : 'Aktifkan'}">
-            <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleMonitor(${m.id}, this.checked)">
-            <span class="kw-toggle-slider"></span>
+        <!-- Top Header: Toggle switch on Left, Action icons on Right -->
+        <div class="mon-card-header">
+          <label class="mon-toggle-wrap" title="${isActive ? 'Klik untuk menonaktifkan' : 'Klik untuk mengaktifkan'}">
+            <span class="mon-switch">
+              <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleMonitor(${m.id}, this.checked)">
+              <span class="mon-switch-track"><span class="mon-switch-thumb"></span></span>
+            </span>
+            <span class="mon-toggle-label ${statusClass}">${statusLabel}</span>
           </label>
-          <div class="monitor-card-footer-actions">
-            <button class="btn btn-sm btn-outline" onclick="pollNow(${m.id})" title="Scan sekarang">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              Scan
+
+          <div class="mon-card-actions">
+            <button type="button" class="mon-action-btn" onclick="editMonitor(${m.id})" title="Edit Monitor" aria-label="Edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
             </button>
-            <a href="/results?monitor_id=${m.id}" class="btn btn-sm btn-outline" title="Lihat aktivitas">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-              Aktivitas
-            </a>
+            <button type="button" class="mon-action-btn mon-action-delete" onclick="openDeleteModal(${m.id})" title="Hapus Monitor" aria-label="Hapus">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
           </div>
+        </div>
+
+        <!-- Card Content: Title, Tag & Description -->
+        <div class="mon-card-body">
+          <h3 class="mon-card-title">${escapeHtml(m.name)}</h3>
+          <div class="mon-card-tag">#${escapeHtml(tag)}</div>
+          <p class="mon-card-desc">${escapeHtml(m.description || 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.')}</p>
+        </div>
+
+        <!-- Middle Stats Box (Rounded Banner) -->
+        <div class="mon-stats-card ${statusClass}">
+          <div class="mon-stat-cell">
+            <span class="mon-stat-lbl">Hasil</span>
+            <span class="mon-stat-val">${(m.result_count || 0).toLocaleString()}</span>
+          </div>
+          <div class="mon-stat-cell">
+            <span class="mon-stat-lbl">Interval</span>
+            <span class="mon-stat-val">${m.polling_interval} Jam</span>
+          </div>
+          <div class="mon-stat-cell">
+            <span class="mon-stat-lbl">Terakhir</span>
+            <span class="mon-stat-val">${lastPoll}</span>
+          </div>
+          <div class="mon-stat-cell">
+            <span class="mon-stat-lbl">Berikutnya</span>
+            <span class="mon-stat-val">${nextPoll}</span>
+          </div>
+        </div>
+
+        <!-- Bottom Action Footer -->
+        <div class="mon-card-footer ${isActive ? 'has-scan' : 'only-download'}">
+          ${isActive ? `
+            <button type="button" class="mon-bottom-btn" onclick="pollNow(${m.id})" title="Scan sekarang">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 3H5a2 2 0 0 0-2 2v2"></path>
+                <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                <path d="M3 17v2a2 2 0 0 0 2 2h2"></path>
+                <line x1="7" y1="12" x2="17" y2="12"></line>
+              </svg>
+              <span>Scan</span>
+            </button>
+          ` : ''}
+          <button type="button" class="mon-bottom-btn" onclick="downloadMonitorReport(${m.id}, '${escapeHtml(m.name)}')" title="Unduh Laporan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="8 12 12 16 16 12"></polyline>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+            </svg>
+            <span>Unduh Laporan</span>
+          </button>
         </div>
       </div>
     `;
   }).join('');
+}
+
+function cleanTag(keyword) {
+  if (!keyword) return '';
+  return keyword.trim().replace(/^#+/, '').replace(/\s+/g, '_').toLowerCase();
+}
+
+function formatRelativeLast(isoString) {
+  if (!isoString) return 'Belum pernah';
+  try {
+    const date = new Date(isoString + (isoString.includes('Z') || isoString.includes('+') ? '' : 'Z'));
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHour = Math.floor(diffMs / 3600000);
+    const diffDay = Math.floor(diffMs / 86400000);
+
+    if (diffMin < 1) return 'Baru saja';
+    if (diffMin < 60) return `${diffMin} menit yang lalu`;
+    if (diffHour < 24) return `${diffHour} Jam yang lalu`;
+    if (diffDay === 1) return 'Kemarin';
+    return `${diffDay} hari yang lalu`;
+  } catch {
+    return 'Belum pernah';
+  }
+}
+
+function formatRelativeNext(isoString, isActive) {
+  if (!isActive || !isoString) return '—';
+  try {
+    const date = new Date(isoString + (isoString.includes('Z') || isoString.includes('+') ? '' : 'Z'));
+    const now = new Date();
+    const diffMs = date - now;
+    if (diffMs <= 0) return 'Segera';
+    const diffMin = Math.ceil(diffMs / 60000);
+    const diffHour = Math.ceil(diffMs / 3600000);
+    if (diffMin < 60) return `dalam ${diffMin} Menit`;
+    return `dalam ${diffHour} Jam`;
+  } catch {
+    return '—';
+  }
+}
+
+async function downloadMonitorReport(id, name) {
+  try {
+    showToast('Menyiapkan laporan...', 'info');
+    const res = await api(`/api/results?monitor_id=${id}&limit=1000`);
+    const results = res.data || [];
+    
+    let csv = '\uFEFF'; // UTF-8 BOM
+    csv += 'ID,Judul,Platform,Sentimen,Skor Sentimen,URL,Waktu Pemindaian\n';
+    
+    if (results.length > 0) {
+      results.forEach(r => {
+        const title = (r.title || '').replace(/"/g, '""');
+        const platform = (r.platform || '').replace(/"/g, '""');
+        const sentiment = (r.sentiment || '').replace(/"/g, '""');
+        const score = r.sentiment_score !== undefined ? r.sentiment_score : '';
+        const url = (r.url || '').replace(/"/g, '""');
+        const time = r.scanned_at || '';
+        csv += `${r.id},"${title}","${platform}","${sentiment}",${score},"${url}","${time}"\n`;
+      });
+    } else {
+      csv += `1,"Belum ada hasil temuan untuk monitor ini","-","-",0,"-","${new Date().toISOString()}"\n`;
+    }
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const safeTitle = (name || 'monitor').toLowerCase().replace(/[^a-z0-9]/g, '-');
+    a.href = blobUrl;
+    a.download = `laporan-monitor-${safeTitle}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+    
+    showToast(`Laporan "${name}" berhasil diunduh`, 'success');
+  } catch (err) {
+    showToast('Gagal mengunduh laporan: ' + err.message, 'error');
+  }
 }
 
 // ─── Modal functions ──────────────────────────────

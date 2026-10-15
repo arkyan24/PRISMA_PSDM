@@ -630,13 +630,14 @@ function toggleSidebarCollapse() {
   }
   updateHamburgerTooltip(isCollapsed);
   try {
+    localStorage.setItem('syiar_sidebar_collapsed', isCollapsed ? 'true' : 'false');
     localStorage.setItem('pijar_sidebar_collapsed', isCollapsed ? 'true' : 'false');
   } catch (e) {}
 }
 
 function initSidebarState() {
   try {
-    const isCollapsed = localStorage.getItem('pijar_sidebar_collapsed') === 'true';
+    const isCollapsed = (localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true';
     if (isCollapsed) {
       document.documentElement.classList.add('sidebar-collapsed');
       if (document.body) document.body.classList.add('sidebar-collapsed');
@@ -652,7 +653,7 @@ function initSidebarState() {
 // ─── Theme Management (Light / Dark Mode) ────────────
 function getPreferredTheme() {
   try {
-    const saved = localStorage.getItem('pijar_theme');
+    const saved = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
     if (saved === 'dark' || saved === 'light') return saved;
   } catch (e) {}
   return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
@@ -692,7 +693,7 @@ function applyTheme(theme, showFeedback = false) {
   const themeSelect = document.getElementById('themeSelect');
   if (themeSelect) {
     try {
-      const rawSaved = localStorage.getItem('pijar_theme');
+      const rawSaved = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
       themeSelect.value = rawSaved ? rawSaved : 'auto';
     } catch(e) {}
   }
@@ -711,6 +712,7 @@ function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
   const next = current === 'dark' ? 'light' : 'dark';
   try {
+    localStorage.setItem('syiar_theme', next);
     localStorage.setItem('pijar_theme', next);
   } catch (e) {}
   applyTheme(next, true);
@@ -719,10 +721,12 @@ function toggleTheme() {
 function setThemeMode(mode) {
   try {
     if (mode === 'auto') {
+      localStorage.removeItem('syiar_theme');
       localStorage.removeItem('pijar_theme');
       const systemTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
       applyTheme(systemTheme, true);
     } else {
+      localStorage.setItem('syiar_theme', mode);
       localStorage.setItem('pijar_theme', mode);
       applyTheme(mode, true);
     }
@@ -742,7 +746,7 @@ function initTheme() {
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
       try {
-        if (!localStorage.getItem('pijar_theme')) {
+        if (!localStorage.getItem('syiar_theme') && !localStorage.getItem('pijar_theme')) {
           applyTheme(e.matches ? 'dark' : 'light', false);
         }
       } catch (err) {}
