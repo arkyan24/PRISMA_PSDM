@@ -98,7 +98,55 @@ Aplikasi web dapat diakses melalui browser di: `http://localhost:3000`.
 
 ---
 
-## 5. Menjalankan Pengujian
+## 5. Kredensial Login & Cara Preview Tampilan
+
+### A. Kredensial Akun Administrator Default
+
+Gunakan kredensial berikut untuk masuk ke sistem:
+
+| Field | Nilai Default |
+| :--- | :--- |
+| **Email / Username** | `psdm.muhammadiyah` |
+| **Password** | `@1912kaumanjogja` |
+
+> [!NOTE]
+> Akun ini otomatis diinisialisasi oleh sistem saat pertama kali dijalankan. Anda dapat mengganti kata sandi kapan saja melalui menu **Pengaturan (`/settings`)**.
+
+---
+
+### B. Langkah-Langkah Preview Tampilan di Browser
+
+1. Pastikan server Node.js dan service IndoBERT telah berjalan sesuai instruksi di Langkah 2 & 3.
+2. Buka browser (Chrome, Edge, Firefox, atau Safari) dan akses tautan:
+   ```text
+   http://localhost:3000/login
+   ```
+3. Masukkan **Email / Username** dan **Password** di atas, lalu klik **Sign in**. Karakter maskot interaktif di panel kiri akan merespons gerakan kursor dan input Anda.
+4. Setelah berhasil masuk, Anda dapat melihat dan menguji pratinjau halaman-halaman berikut:
+
+   * **Dashboard Utama (`http://localhost:3000/dashboard`)**:
+     * Visualisasi statistik total monitoring, jumlah temuan, dan distribusi sentimen dalam grafik batang maupun diagram donat.
+     * Panel monitoring aktif, filter tanggal (*date range*), dan daftar cuplikan berita terkini dengan persentase keyakinan sentimen.
+     * Tombol beralih **Dark Mode / Light Mode** di kanan atas navbar.
+
+   * **Halaman Aktivitas (`http://localhost:3000/results`)**:
+     * Daftar temuan pemantauan media yang diklasifikasikan per platform (*Website, Facebook, Twitter/X, Instagram*).
+     * Setiap kartu berita menampilkan **badge sentimen** lengkap dengan **persentase tingkat keyakinan** (contoh: `[✓] Positif 86% Keyakinan IndoBERT`, `[-] Netral 75% Keyakinan IndoBERT`).
+     * Fitur pengelompokan berita serupa (*clustering & deduplication*) dan filter sentimen interaktif.
+
+   * **Halaman Monitor (`http://localhost:3000/monitor`)**:
+     * Tampilan kartu monitor isu digital:
+       * **Monitor Aktif**: Kartu warna primer *Primary Purple* (`#4f46cb`).
+       * **Monitor Nonaktif**: Kartu warna sekunder *Secondary Coral* lembut (`#fba691`, `opacity: 0.82`).
+       * **Elemen Dekoratif**: Lingkaran halus di sudut kanan atas setiap kartu.
+     * **Tombol Hapus Monitor (Tong Sampah)**: Dilengkapi dengan pop-up modal konfirmasi interaktif untuk mencegah penghapusan data secara tidak sengaja.
+
+   * **Halaman Pengaturan (`http://localhost:3000/settings`)**:
+     * Pengaturan kredensial Google Search API, interval waktu crawling, preferensi sistem, serta pengelolaan kata sandi pengguna.
+
+---
+
+## 6. Menjalankan Pengujian
 
 ### A. Pengujian Integrasi Node.js Suite
 Memvalidasi kontrak API, penanganan teks kosong, normalisasi slang, fallback saat API mati, health check adapter, dan live batch inference:
@@ -120,7 +168,7 @@ Hasil benchmark aktual:
 
 ---
 
-## 6. Struktur File Proyek
+## 7. Struktur File Proyek
 
 ```text
 MAGANG PSDM/
