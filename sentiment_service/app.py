@@ -1,6 +1,6 @@
 """
 FastAPI Sentiment Analysis Service
-Prisma — PR Intelligence & Social Media Analytics
+PRISMA — PR Intelligence & Social Media
 """
 
 import os
@@ -42,8 +42,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Prisma IndoBERT Sentiment API",
-    description="High-accuracy Indonesian NLP Sentiment Analysis for Prisma PR Intelligence",
+    title="PRISMA IndoBERT Sentiment API",
+    description="High-accuracy Indonesian NLP Sentiment Analysis for PRISMA (PR Intelligence & Social Media)",
     version=MODEL_VERSION,
     lifespan=lifespan
 )

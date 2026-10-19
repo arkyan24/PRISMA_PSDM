@@ -1,11 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { analyzeSentimentNLP, analyzeSentimentNLPAsync } = require('./nlp_sentiment');
-const { clusterAndDeduplicate } = require('./clustering');
+const { AsyncLocalStorage } = require('async_hooks');
+const tenantStorage = new AsyncLocalStorage();
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const DB_FILE = path.join(DATA_DIR, 'database.json');
+const TENANTS_DIR = path.join(DATA_DIR, 'tenants');
+const authVault = require('./auth_vault');
 
 // ─── Database Structure ───────────────────────────────
 const DEFAULT_DB = {
@@ -24,85 +26,135 @@ const DEFAULT_DB = {
   _next_ids: { keywords: 1, results: 1, scan_logs: 1, users: 1, monitors: 1 }
 };
 
-// ─── File I/O ─────────────────────────────────────────
-let _db = null;
+// ─── Multi-Tenant File I/O ────────────────────────────
+const _tenantDbs = {};
 
 function ensureDir() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
+  if (!fs.existsSync(TENANTS_DIR)) {
+    fs.mkdirSync(TENANTS_DIR, { recursive: true });
+  }
+}
+
+function getActiveTenantName() {
+  return tenantStorage.getStore() || 'psdm.muhammadiyah';
+}
+
+function getTenantFilePath(username) {
+  const safeName = (username || 'psdm.muhammadiyah').replace(/[^a-zA-Z0-9_.-]/g, '_');
+  return path.join(TENANTS_DIR, `${safeName}.json`);
+}
+
+function loadTenant(username) {
+  ensureDir();
+  const tenant = username || getActiveTenantName();
+  if (!_tenantDbs[tenant]) {
+    const tenantFile = getTenantFilePath(tenant);
+    if (fs.existsSync(tenantFile)) {
+      try {
+        const raw = fs.readFileSync(tenantFile, 'utf-8');
+        _tenantDbs[tenant] = JSON.parse(raw);
+      } catch (err) {
+        console.error(`[DB] Error loading tenant ${tenant}, fallback to default:`, err.message);
+        _tenantDbs[tenant] = JSON.parse(JSON.stringify(DEFAULT_DB));
+      }
+    } else {
+      // If primary tenant psdm.muhammadiyah, check if legacy database.json exists
+      if (tenant === 'psdm.muhammadiyah' && fs.existsSync(DB_FILE)) {
+        try {
+          const raw = fs.readFileSync(DB_FILE, 'utf-8');
+          _tenantDbs[tenant] = JSON.parse(raw);
+          fs.writeFileSync(tenantFile, JSON.stringify(_tenantDbs[tenant], null, 2), 'utf-8');
+        } catch (e) {
+          _tenantDbs[tenant] = JSON.parse(JSON.stringify(DEFAULT_DB));
+        }
+      } else {
+        _tenantDbs[tenant] = JSON.parse(JSON.stringify(DEFAULT_DB));
+        fs.writeFileSync(tenantFile, JSON.stringify(_tenantDbs[tenant], null, 2), 'utf-8');
+      }
+    }
+
+    // Ensure schema keys
+    for (const key of Object.keys(DEFAULT_DB)) {
+      if (!(key in _tenantDbs[tenant])) _tenantDbs[tenant][key] = DEFAULT_DB[key];
+    }
+    if (!_tenantDbs[tenant]._next_ids) _tenantDbs[tenant]._next_ids = { keywords: 1, results: 1, scan_logs: 1, users: 1, monitors: 1 };
+  }
+  return _tenantDbs[tenant];
+}
+
+function saveTenant(username) {
+  ensureDir();
+  const tenant = username || getActiveTenantName();
+  const dbData = _tenantDbs[tenant] || DEFAULT_DB;
+  const tenantFile = getTenantFilePath(tenant);
+  fs.writeFileSync(tenantFile, JSON.stringify(dbData, null, 2), 'utf-8');
+
+  // Keep root database.json synced for default tenant
+  if (tenant === 'psdm.muhammadiyah') {
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(dbData, null, 2), 'utf-8');
+    } catch(e) {}
+  }
+}
+
+function initTenantDatabase(username, userMetadata = {}) {
+  ensureDir();
+  const safeName = (username || '').replace(/[^a-zA-Z0-9_.-]/g, '_');
+  const tenantFile = path.join(TENANTS_DIR, `${safeName}.json`);
+
+  let existing = {};
+  if (fs.existsSync(tenantFile)) {
+    try {
+      existing = JSON.parse(fs.readFileSync(tenantFile, 'utf-8'));
+    } catch(e) {}
+  }
+
+  const initialData = {
+    profile: {
+      username: username,
+      full_name: userMetadata.full_name || username,
+      institution: userMetadata.institution || 'Pusat Syiar Digital Muhammadiyah',
+      position: userMetadata.position || '',
+      email: userMetadata.email || '',
+      avatar_url: existing.profile?.avatar_url || null,
+      created_at: existing.profile?.created_at || new Date().toISOString()
+    },
+    settings: existing.settings || {
+      google_api_key: '',
+      google_cx_id: '',
+      max_results_per_query: '10',
+      auto_start: '0'
+    },
+    monitors: existing.monitors || [],
+    keywords: existing.keywords || [],
+    results: existing.results || [],
+    scan_logs: existing.scan_logs || [],
+    _next_ids: existing._next_ids || { keywords: 1, results: 1, scan_logs: 1, monitors: 1 }
+  };
+
+  fs.writeFileSync(tenantFile, JSON.stringify(initialData, null, 2), 'utf-8');
+  _tenantDbs[username] = initialData;
+  console.log(`[DB] Database tenant pribadi baru otomatis dibuat: ${tenantFile}`);
+  return tenantFile;
 }
 
 function load() {
-  ensureDir();
-  if (!_db) {
-    if (fs.existsSync(DB_FILE)) {
-      try {
-        const raw = fs.readFileSync(DB_FILE, 'utf-8');
-        _db = JSON.parse(raw);
-        // Ensure all keys exist (migration-safe)
-        for (const key of Object.keys(DEFAULT_DB)) {
-          if (!(key in _db)) _db[key] = DEFAULT_DB[key];
-        }
-        if (!_db._next_ids) _db._next_ids = { keywords: 1, results: 1, scan_logs: 1, users: 1, monitors: 1 };
-        if (!_db._next_ids.monitors) _db._next_ids.monitors = 1;
-        if (!_db.monitors) _db.monitors = [];
-
-        // Migrate existing keywords to monitors if monitors array is empty
-        if (_db.monitors.length === 0 && Array.isArray(_db.keywords) && _db.keywords.length > 0) {
-          console.log('[DB] Migrating existing keywords to monitors...');
-          let nextMid = 1;
-          const kwToMonMap = {};
-          for (const kw of _db.keywords) {
-            const mid = nextMid++;
-            kwToMonMap[kw.id] = mid;
-            kw.monitor_id = mid;
-            _db.monitors.push({
-              id: mid,
-              name: kw.keyword,
-              keyword: kw.keyword,
-              description: `Monitoring topik ${kw.keyword}`,
-              polling_interval: parseInt(_db.settings?.interval_hours) || 3,
-              initial_polling_mode: 'today',
-              status: kw.is_active ? 'active' : 'inactive',
-              keyword_id: kw.id,
-              created_at: kw.created_at || new Date().toISOString(),
-              updated_at: kw.created_at || new Date().toISOString(),
-              last_polled_at: null,
-              next_poll_at: null
-            });
-          }
-          _db._next_ids.monitors = nextMid;
-
-          // Backfill monitor_id on existing results
-          if (Array.isArray(_db.results)) {
-            for (const r of _db.results) {
-              if (!r.monitor_id && r.keyword_id && kwToMonMap[r.keyword_id]) {
-                r.monitor_id = kwToMonMap[r.keyword_id];
-              }
-            }
-          }
-          fs.writeFileSync(DB_FILE, JSON.stringify(_db, null, 2), 'utf-8');
-          console.log(`[DB] Migration complete: ${_db.monitors.length} monitor(s) initialized.`);
-        }
-      } catch (e) {
-        console.error('[DB] Corrupt database, resetting:', e.message);
-        _db = JSON.parse(JSON.stringify(DEFAULT_DB));
-      }
-    } else {
-      _db = JSON.parse(JSON.stringify(DEFAULT_DB));
-    }
-  }
-  return _db;
+  return loadTenant(getActiveTenantName());
 }
 
 function save() {
-  ensureDir();
-  fs.writeFileSync(DB_FILE, JSON.stringify(_db, null, 2), 'utf-8');
+  saveTenant(getActiveTenantName());
 }
 
 function getDb() {
   return load();
+}
+
+function withTenant(username, fn) {
+  return tenantStorage.run(username || 'psdm.muhammadiyah', fn);
 }
 
 function nextId(entity) {
@@ -738,134 +790,62 @@ function migrateKeywordsToMonitors() {
 }
 
 // ─── Authentication & Security ─────────────────────────
-function hashPassword(password, salt) {
-  return crypto.scryptSync(password, salt, 64).toString('hex');
-}
-
-function initDefaultUser() {
-  const db = getDb();
-  if (!db.users) db.users = [];
-  if (!db.sessions) db.sessions = [];
-  const defaultUsername = 'psdm.muhammadiyah';
-  const defaultPassword = '@1912kaumanjogja';
-  
-  const existingUserIndex = db.users.findIndex(u => u.username.toLowerCase() === defaultUsername.toLowerCase());
-  if (existingUserIndex === -1) {
-    const salt = crypto.randomBytes(16).toString('hex');
-    const hash = hashPassword(defaultPassword, salt);
-    db.users.push({
-      id: db._next_ids.users || 1,
-      username: defaultUsername,
-      password_hash: hash,
-      salt: salt,
-      created_at: new Date().toISOString()
-    });
-    db._next_ids.users = (db._next_ids.users || 1) + 1;
-    save();
-    console.log('[Auth] Akun admin default berhasil diinisialisasi:', defaultUsername);
-  }
-}
-
 function verifyUser(username, password) {
-  initDefaultUser();
-  const db = getDb();
-  if (!username || !password) return false;
-  const user = db.users.find(u => u.username.toLowerCase() === username.trim().toLowerCase());
-  if (!user) return false;
-  
-  try {
-    const computedHash = hashPassword(password, user.salt);
-    const computedBuffer = Buffer.from(computedHash, 'hex');
-    const storedBuffer = Buffer.from(user.password_hash, 'hex');
-    if (computedBuffer.length !== storedBuffer.length) return false;
-    return crypto.timingSafeEqual(computedBuffer, storedBuffer);
-  } catch (e) {
-    console.error('[Auth] Error during verification:', e.message);
-    return false;
-  }
+  const result = authVault.verifyUserLogin(username, password);
+  return result.ok ? true : false;
+}
+
+function verifyUserExtended(username, password) {
+  return authVault.verifyUserLogin(username, password);
 }
 
 function changeUserPassword(username, currentPassword, newPassword, currentToken) {
-  if (!verifyUser(username, currentPassword)) return false;
-
-  const db = getDb();
-  const user = db.users.find(u => u.username.toLowerCase() === username.trim().toLowerCase());
-  if (!user) return false;
-
-  user.salt = crypto.randomBytes(16).toString('hex');
-  user.password_hash = hashPassword(newPassword, user.salt);
-  db.sessions = (db.sessions || []).filter(session => session.token === currentToken);
-  save();
-  return true;
+  const check = authVault.verifyUserLogin(username, currentPassword);
+  if (!check.ok) return false;
+  return authVault.changeUserPasswordVault(username, currentPassword, newPassword, currentToken);
 }
 
 function createSession(username, durationDays = 7) {
-  const db = getDb();
-  if (!db.sessions) db.sessions = [];
-  const token = crypto.randomBytes(32).toString('hex');
-  const now = new Date();
-  const expiresAt = new Date(now.getTime() + durationDays * 24 * 3600 * 1000).toISOString();
-  
-  // Clean up expired sessions
-  db.sessions = db.sessions.filter(s => s.expires_at > now.toISOString());
-
-  db.sessions.push({
-    token,
-    username,
-    created_at: now.toISOString(),
-    expires_at: expiresAt
-  });
-  save();
-  return { token, expiresAt };
+  return authVault.createUserSession(username, durationDays);
 }
 
 function validateSession(token) {
-  if (!token) return null;
-  const db = getDb();
-  if (!db.sessions) return null;
-  const now = new Date().toISOString();
-  const session = db.sessions.find(s => s.token === token && s.expires_at > now);
-  return session || null;
+  return authVault.validateUserSession(token);
 }
 
 function destroySession(token) {
-  if (!token) return false;
-  const db = getDb();
-  if (!db.sessions) return false;
-  const beforeLen = db.sessions.length;
-  db.sessions = db.sessions.filter(s => s.token !== token);
-  if (db.sessions.length !== beforeLen) {
-    save();
-    return true;
-  }
-  return false;
+  return authVault.destroyUserSession(token);
 }
 
 function getUserProfile(username) {
-  const db = getDb();
   if (!username) return null;
-  const user = (db.users || []).find(u => u.username.toLowerCase() === username.trim().toLowerCase());
+  const users = authVault.getAllVaultUsers();
+  const user = users.find(u => u.username === String(username).trim());
   if (!user) return null;
+  
+  const tenantDb = loadTenant(user.username);
   return {
     username: user.username,
-    avatar_url: user.avatar_url || null,
-    created_at: user.created_at
+    full_name: user.full_name || user.username,
+    email: user.email,
+    position: user.position,
+    institution: user.institution,
+    avatar_url: tenantDb?.profile?.avatar_url || null,
+    created_at: user.created_at,
+    subscription_expires_at: user.subscription_expires_at
   };
 }
 
 function updateUserAvatar(username, avatarUrl) {
-  const db = getDb();
   if (!username) return false;
-  const user = (db.users || []).find(u => u.username.toLowerCase() === username.trim().toLowerCase());
-  if (!user) return false;
-  user.avatar_url = avatarUrl;
-  save();
+  const tenantDb = loadTenant(username);
+  if (!tenantDb.profile) tenantDb.profile = {};
+  tenantDb.profile.avatar_url = avatarUrl;
+  saveTenant(username);
   return true;
 }
-
 // Initialize on load
 load();
-initDefaultUser();
 enrichAndClusterDatabase();
 migrateKeywordsToMonitors();
 console.log('[DB] Database loaded from', DB_FILE);
@@ -908,12 +888,18 @@ module.exports = {
   completeScanLog,
   getLastScanLog,
   getScanLogs,
-  // Auth
+  // Auth & Multi-Tenant
   verifyUser,
+  verifyUserExtended,
   changeUserPassword,
   createSession,
   validateSession,
   destroySession,
+  withTenant,
+  tenantStorage,
+  loadTenant,
+  saveTenant,
+  initTenantDatabase,
   enrichAndClusterDatabase,
   migrateKeywordsToMonitors
 };

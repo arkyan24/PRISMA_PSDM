@@ -1,6 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const db = require('./database');
+const nlpSentiment = require('./nlp_sentiment');
 
 // ─── Multiple Search Strategies ───────────────────────
 // Strategy 1: Google Custom Search API (if configured)
@@ -351,7 +352,7 @@ async function runMonitorScan(monitor) {
       await sleep(800 + Math.random() * 400);
       const results = await searchPlatform(monitor.keyword, platform, apiKey, cxId, maxResults);
 
-      const sentimentModule = require('./sentiment');
+      const sentimentModule = nlpSentiment;
       if (results.length > 0) {
         const texts = results.map(r => `${r.title || ''} ${r.snippet || ''}`);
         let sentiments = [];
@@ -452,7 +453,7 @@ async function runFullScan() {
         await sleep(800 + Math.random() * 400);
         const results = await searchPlatform(kw.keyword, platform, apiKey, cxId, maxResults);
 
-        const sentimentModule = require('./sentiment');
+        const sentimentModule = nlpSentiment;
         if (results.length > 0) {
           const texts = results.map(r => `${r.title || ''} ${r.snippet || ''}`);
           let sentiments = [];

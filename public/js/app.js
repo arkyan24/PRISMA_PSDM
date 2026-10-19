@@ -5,6 +5,13 @@
 
 const API_BASE = '';
 
+const PUBLIC_PAGES = ['/login', '/login.html', '/register', '/register.html', '/signup', '/kjkaaf94nf/login'];
+
+function isPublicPage() {
+  const p = window.location.pathname.toLowerCase();
+  return PUBLIC_PAGES.some(pub => p === pub || p.endsWith(pub));
+}
+
 // ─── API Helper ───────────────────────────────────────
 async function api(url, method = 'GET', body = null) {
   const opts = {
@@ -16,7 +23,7 @@ async function api(url, method = 'GET', body = null) {
   const res = await fetch(API_BASE + url, opts);
   
   if (res.status === 401) {
-    if (window.location.pathname !== '/login') {
+    if (!isPublicPage()) {
       window.location.href = '/login';
     }
     return { success: false, message: 'Unauthenticated' };
@@ -632,6 +639,7 @@ function toggleSidebarCollapse() {
   }
   updateHamburgerTooltip(isCollapsed);
   try {
+    localStorage.setItem('prisma_sidebar_collapsed', isCollapsed ? 'true' : 'false');
     localStorage.setItem('syiar_sidebar_collapsed', isCollapsed ? 'true' : 'false');
     localStorage.setItem('pijar_sidebar_collapsed', isCollapsed ? 'true' : 'false');
   } catch (e) {}
@@ -639,7 +647,7 @@ function toggleSidebarCollapse() {
 
 function initSidebarState() {
   try {
-    const isCollapsed = (localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true';
+    const isCollapsed = (localStorage.getItem('prisma_sidebar_collapsed') || localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true';
     if (isCollapsed) {
       document.documentElement.classList.add('sidebar-collapsed');
       if (document.body) document.body.classList.add('sidebar-collapsed');
@@ -655,7 +663,7 @@ function initSidebarState() {
 // ─── Theme Management (Light / Dark Mode) ────────────
 function getPreferredTheme() {
   try {
-    const saved = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
+    const saved = localStorage.getItem('prisma_theme') || localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
     if (saved === 'dark' || saved === 'light') return saved;
   } catch (e) {}
   return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
@@ -695,9 +703,26 @@ function applyTheme(theme, showFeedback = false) {
   const themeSelect = document.getElementById('themeSelect');
   if (themeSelect) {
     try {
-      const rawSaved = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
+      const rawSaved = localStorage.getItem('prisma_theme') || localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
       themeSelect.value = rawSaved ? rawSaved : 'auto';
     } catch(e) {}
+  }
+
+  // Update settings theme choice cards if on settings page
+  const cardLight = document.getElementById('themeCardLight');
+  const cardDark = document.getElementById('themeCardDark');
+  if (cardLight && cardDark) {
+    if (isDark) {
+      cardDark.classList.add('active');
+      cardLight.classList.remove('active');
+    } else {
+      cardLight.classList.add('active');
+      cardDark.classList.remove('active');
+    }
+  }
+
+  if (typeof updateThemeUI === 'function') {
+    try { updateThemeUI(theme); } catch (e) {}
   }
 
   // Update charts if dashboard charts are present
@@ -706,7 +731,7 @@ function applyTheme(theme, showFeedback = false) {
   }
 
   if (showFeedback && typeof showToast === 'function') {
-    showToast(isDark ? 'Mode Malam aktif' : 'Mode Terang aktif', 'info');
+    showToast(isDark ? 'Mode Gelap aktif' : 'Mode Terang aktif', 'info');
   }
 }
 
@@ -714,6 +739,7 @@ function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
   const next = current === 'dark' ? 'light' : 'dark';
   try {
+    localStorage.setItem('prisma_theme', next);
     localStorage.setItem('syiar_theme', next);
     localStorage.setItem('pijar_theme', next);
   } catch (e) {}
@@ -723,11 +749,13 @@ function toggleTheme() {
 function setThemeMode(mode) {
   try {
     if (mode === 'auto') {
+      localStorage.removeItem('prisma_theme');
       localStorage.removeItem('syiar_theme');
       localStorage.removeItem('pijar_theme');
       const systemTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
       applyTheme(systemTheme, true);
     } else {
+      localStorage.setItem('prisma_theme', mode);
       localStorage.setItem('syiar_theme', mode);
       localStorage.setItem('pijar_theme', mode);
       applyTheme(mode, true);
@@ -748,7 +776,7 @@ function initTheme() {
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
       try {
-        if (!localStorage.getItem('syiar_theme') && !localStorage.getItem('pijar_theme')) {
+        if (!localStorage.getItem('prisma_theme') && !localStorage.getItem('syiar_theme') && !localStorage.getItem('pijar_theme')) {
           applyTheme(e.matches ? 'dark' : 'light', false);
         }
       } catch (err) {}
@@ -757,9 +785,10 @@ function initTheme() {
 }
 
 // ─── Global Avatar & Profile Synchronization ───
-function applyGlobalAvatar(avatarUrl, username) {
-  const currentUsername = username || localStorage.getItem('syiar_user_name') || 'psdm.muhammadiyah';
-  const initial = currentUsername.charAt(0).toUpperCase();
+function applyGlobalAvatar(avatarUrl, username, institution) {
+  const currentUsername = username || localStorage.getItem('prisma_user_name') || localStorage.getItem('syiar_user_name') || 'psdm.muhammadiyah';
+  const currentInstitution = institution || localStorage.getItem('prisma_user_institution') || localStorage.getItem('syiar_user_institution') || 'Pusat Syiar Digital Muhammadiyah';
+  const initial = (currentInstitution || currentUsername).charAt(0).toUpperCase();
 
   const sidebarWraps = document.querySelectorAll('.sidebar-avatar-wrap');
   sidebarWraps.forEach(wrap => {
@@ -770,40 +799,55 @@ function applyGlobalAvatar(avatarUrl, username) {
     }
   });
 
+  // Bagian atas: Nama Instansi
   const profileTitles = document.querySelectorAll('.sidebar-profile-title');
   profileTitles.forEach(t => {
-    t.textContent = currentUsername;
+    t.textContent = currentInstitution;
+  });
+
+  // Bagian bawah: Username
+  const profileSubs = document.querySelectorAll('.sidebar-profile-sub');
+  profileSubs.forEach(s => {
+    s.textContent = currentUsername;
   });
 }
 
 async function syncGlobalUserProfile() {
-  if (window.location.pathname === '/login') return;
+  if (isPublicPage()) return;
 
   try {
-    const cachedAvatar = localStorage.getItem('syiar_user_avatar');
-    const cachedUser = localStorage.getItem('syiar_user_name') || 'psdm.muhammadiyah';
-    applyGlobalAvatar(cachedAvatar, cachedUser);
+    const cachedAvatar = localStorage.getItem('prisma_user_avatar') || localStorage.getItem('syiar_user_avatar');
+    const cachedUser = localStorage.getItem('prisma_user_name') || localStorage.getItem('syiar_user_name') || 'psdm.muhammadiyah';
+    const cachedInst = localStorage.getItem('prisma_user_institution') || localStorage.getItem('syiar_user_institution') || 'Pusat Syiar Digital Muhammadiyah';
+    applyGlobalAvatar(cachedAvatar, cachedUser, cachedInst);
   } catch (e) {}
 
   try {
     const res = await api('/api/auth/me');
     if (res && res.authenticated && res.user) {
       const username = res.user.username || 'psdm.muhammadiyah';
+      const institution = res.user.institution || 'Pusat Syiar Digital Muhammadiyah';
       const avatarUrl = res.user.avatar_url || null;
       try {
+        localStorage.setItem('prisma_user_name', username);
+        localStorage.setItem('prisma_user_institution', institution);
         localStorage.setItem('syiar_user_name', username);
+        localStorage.setItem('syiar_user_institution', institution);
         if (avatarUrl) {
+          localStorage.setItem('prisma_user_avatar', avatarUrl);
           localStorage.setItem('syiar_user_avatar', avatarUrl);
         } else {
+          localStorage.removeItem('prisma_user_avatar');
           localStorage.removeItem('syiar_user_avatar');
         }
       } catch (err) {}
-      applyGlobalAvatar(avatarUrl, username);
+      applyGlobalAvatar(avatarUrl, username, institution);
     }
   } catch (e) {
-    const cachedAvatar = localStorage.getItem('syiar_user_avatar');
-    const cachedUser = localStorage.getItem('syiar_user_name') || 'psdm.muhammadiyah';
-    applyGlobalAvatar(cachedAvatar, cachedUser);
+    const cachedAvatar = localStorage.getItem('prisma_user_avatar') || localStorage.getItem('syiar_user_avatar');
+    const cachedUser = localStorage.getItem('prisma_user_name') || localStorage.getItem('syiar_user_name') || 'psdm.muhammadiyah';
+    const cachedInst = localStorage.getItem('prisma_user_institution') || localStorage.getItem('syiar_user_institution') || 'Pusat Syiar Digital Muhammadiyah';
+    applyGlobalAvatar(cachedAvatar, cachedUser, cachedInst);
   }
 }
 
@@ -812,7 +856,7 @@ window.syncGlobalUserProfile = syncGlobalUserProfile;
 
 function initApp() {
   initTheme();
-  if (window.location.pathname !== '/login') {
+  if (!isPublicPage()) {
     initSidebarState();
     syncGlobalUserProfile();
   }

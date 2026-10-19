@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const db = require('./src/database');
+const authVault = require('./src/auth_vault');
 const scheduler = require('./src/scheduler');
 const { buildPDFReport } = require('./src/pdf_report_builder');
 
@@ -29,7 +30,17 @@ function getCookie(req, name) {
 }
 
 function getAuthToken(req) {
-  const cookieToken = getCookie(req, 'syiar_auth_token') || getCookie(req, 'pijar_auth_token');
+  const cookieToken = getCookie(req, 'prisma_auth_token') || getCookie(req, 'syiar_auth_token') || getCookie(req, 'pijar_auth_token');
+  if (cookieToken) return cookieToken;
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+  return null;
+}
+
+function getOwnerToken(req) {
+  const cookieToken = getCookie(req, 'prisma_owner_token') || getCookie(req, 'syiar_owner_token');
   if (cookieToken) return cookieToken;
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -45,7 +56,7 @@ function pageAuthGuard(req, res, next) {
     return res.redirect('/login');
   }
   req.user = session;
-  next();
+  db.withTenant(session.username, next);
 }
 
 function apiAuthGuard(req, res, next) {
@@ -55,6 +66,26 @@ function apiAuthGuard(req, res, next) {
     return res.status(401).json({ success: false, message: 'Autentikasi diperlukan. Silakan login terlebih dahulu.' });
   }
   req.user = session;
+  db.withTenant(session.username, next);
+}
+
+function ownerPageGuard(req, res, next) {
+  const token = getOwnerToken(req);
+  const session = authVault.validateOwnerSession(token);
+  if (!session) {
+    return res.redirect('/kjkaaf94nf/login');
+  }
+  req.owner = session;
+  next();
+}
+
+function ownerApiGuard(req, res, next) {
+  const token = getOwnerToken(req);
+  const session = authVault.validateOwnerSession(token);
+  if (!session) {
+    return res.status(401).json({ success: false, message: 'Akses khusus Owner diperlukan.' });
+  }
+  req.owner = session;
   next();
 }
 
@@ -65,12 +96,30 @@ app.post('/api/auth/login', (req, res) => {
     if (!username || !password) {
       return res.status(400).json({ success: false, message: 'Username dan password wajib diisi' });
     }
-    const isValid = db.verifyUser(username, password);
-    if (!isValid) {
-      return res.status(401).json({ success: false, message: 'Username atau password salah' });
+    const cleanUsername = String(username).trim();
+    const cleanPassword = String(password);
+    
+    const verifyResult = authVault.verifyUserLogin(cleanUsername, cleanPassword);
+    if (!verifyResult.ok) {
+      // Generic message per instruction
+      return res.status(401).json({ success: false, message: 'Login gagal, Anda mungkin belum terdaftar.' });
     }
-    const session = db.createSession(username);
+
+    // First login password change check
+    if (verifyResult.must_change_password) {
+      const tempSession = authVault.createUserSession(cleanUsername, 1);
+      return res.json({
+        success: true,
+        must_change_password: true,
+        temp_token: tempSession.token,
+        message: 'Ini adalah login pertama Anda. Silakan tentukan kata sandi baru.',
+        user: { username: cleanUsername }
+      });
+    }
+
+    const session = authVault.createUserSession(cleanUsername);
     res.setHeader('Set-Cookie', [
+      `prisma_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
       `syiar_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
       `pijar_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`
     ]);
@@ -78,7 +127,50 @@ app.post('/api/auth/login', (req, res) => {
       success: true,
       message: 'Login berhasil',
       token: session.token,
-      user: { username }
+      user: { username: cleanUsername }
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+app.post('/api/auth/register-request', (req, res) => {
+  try {
+    const { full_name, email, phone, position, institution, institution_address } = req.body;
+    if (!full_name || !email || !phone || !position || !institution || !institution_address) {
+      return res.status(400).json({ success: false, message: 'Semua kolom formulir pendaftaran wajib diisi.' });
+    }
+    const reg = authVault.addPendingRegistration(req.body);
+    res.json({
+      success: true,
+      message: 'Permohonan pendaftaran berhasil dikirim dan menunggu persetujuan Owner.',
+      data: reg
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+app.post('/api/auth/first-login-change-password', (req, res) => {
+  try {
+    const { username, temp_token, new_password } = req.body;
+    if (!username || !new_password || new_password.length < 8) {
+      return res.status(400).json({ success: false, message: 'Kata sandi baru minimal 8 karakter.' });
+    }
+    const session = authVault.validateUserSession(temp_token);
+    if (!session || session.username !== username) {
+      return res.status(401).json({ success: false, message: 'Sesi aktivasi tidak valid atau telah kedaluwarsa.' });
+    }
+
+    authVault.changeUserPasswordVault(username, '(Password Sementara Awal)', new_password, temp_token);
+    res.setHeader('Set-Cookie', [
+      `prisma_auth_token=${temp_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
+      `syiar_auth_token=${temp_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
+      `pijar_auth_token=${temp_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`
+    ]);
+    res.json({
+      success: true,
+      message: 'Kata sandi berhasil diperbarui. Selamat datang di sistem PRISMA!'
     });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
@@ -92,6 +184,7 @@ app.post('/api/auth/logout', (req, res) => {
       db.destroySession(token);
     }
     res.setHeader('Set-Cookie', [
+      'prisma_auth_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
       'syiar_auth_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
       'pijar_auth_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0'
     ]);
@@ -113,14 +206,17 @@ app.get('/api/auth/me', (req, res) => {
     authenticated: true,
     user: {
       username: session.username,
-      avatar_url: profile?.avatar_url || null
+      avatar_url: profile?.avatar_url || null,
+      full_name: profile?.full_name || session.username,
+      institution: profile?.institution || 'Pusat Syiar Digital Muhammadiyah'
     }
   });
 });
 
-// Guard all other /api/* routes
+// Guard all other /api/* routes with multi-tenant context
 app.use('/api', (req, res, next) => {
-  if (req.path === '/auth/login') {
+  const publicApiPaths = ['/auth/login', '/auth/register-request', '/auth/first-login-change-password'];
+  if (publicApiPaths.includes(req.path)) {
     return next();
   }
   apiAuthGuard(req, res, next);
@@ -574,14 +670,171 @@ app.get('/api/reports/pdf', async (req, res) => {
   }
 });
 
-// ─── Login & Page Routes ──────────────────────────────────────
-app.get('/login', (req, res) => {
+// ─── Login & Public Registration Routes ───────────────────────
+app.get(['/login', '/login.html'], (req, res) => {
   const token = getAuthToken(req);
   if (token && db.validateSession(token)) {
     return res.redirect('/dashboard');
   }
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
+
+app.get(['/register', '/signup', '/register.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'register.html'));
+});
+
+// ─── Restricted Owner Portal Routes (/kjkaaf94nf) ─────────────
+app.get(['/kjkaaf94nf/login', '/kjkaaf94nf/login.html'], (req, res) => {
+  const token = getOwnerToken(req);
+  if (token && authVault.validateOwnerSession(token)) {
+    return res.redirect('/kjkaaf94nf/');
+  }
+  res.sendFile(path.join(__dirname, 'public', 'kjkaaf94nf', 'login.html'));
+});
+
+app.get(['/kjkaaf94nf', '/kjkaaf94nf/', '/kjkaaf94nf/index.html'], ownerPageGuard, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'kjkaaf94nf', 'index.html'));
+});
+
+app.post('/kjkaaf94nf/api/login', (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ success: false, message: 'Username dan kata sandi wajib diisi.' });
+    }
+    const valid = authVault.verifyOwner(username, password);
+    if (!valid) {
+      return res.status(401).json({ success: false, message: 'Kredensial Owner tidak valid.' });
+    }
+    const session = authVault.createOwnerSession(username);
+    res.setHeader('Set-Cookie', [
+      `prisma_owner_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
+      `syiar_owner_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`
+    ]);
+    res.json({ success: true, message: 'Login Owner berhasil', token: session.token });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+app.post('/kjkaaf94nf/api/logout', (req, res) => {
+  try {
+    const token = getOwnerToken(req);
+    if (token) {
+      authVault.destroyOwnerSession(token);
+    }
+    res.setHeader('Set-Cookie', [
+      'prisma_owner_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+      'syiar_owner_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0'
+    ]);
+    res.json({ success: true, message: 'Logout Owner berhasil' });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+app.get('/kjkaaf94nf/api/dashboard', ownerApiGuard, (req, res) => {
+  try {
+    const registrations = authVault.getPendingRegistrations();
+    const users = authVault.getAllVaultUsers();
+    res.json({
+      success: true,
+      registrations,
+      users
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+app.post('/kjkaaf94nf/api/registrations/:id/approve', ownerApiGuard, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, temporary_password, subscription_days } = req.body;
+    if (!username || !temporary_password) {
+      return res.status(400).json({ success: false, message: 'Username dan kata sandi sementara wajib diisi.' });
+    }
+    const result = authVault.approveRegistration(id, {
+      username,
+      temporaryPassword: temporary_password,
+      subscriptionDays: subscription_days || 30
+    });
+    // Ensure tenant isolated database is created & initialized
+    db.initTenantDatabase(username, {
+      full_name: result.user?.full_name,
+      institution: result.user?.institution,
+      position: result.user?.position,
+      email: result.user?.email
+    });
+    res.json({
+      success: true,
+      message: `Pendaftaran disetujui. Database pribadi (data/tenants/${username}.json) otomatis dibuat.`,
+      data: result,
+      tenant_file: `data/tenants/${username}.json`
+    });
+  } catch (e) {
+    res.status(400).json({ success: false, message: e.message });
+  }
+});
+
+app.post('/kjkaaf94nf/api/registrations/:id/reject', ownerApiGuard, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason, note } = req.body;
+    const result = authVault.rejectRegistration(id, reason || note || '');
+    res.json({ success: true, message: 'Pendaftaran berhasil ditolak.', data: result });
+  } catch (e) {
+    res.status(400).json({ success: false, message: e.message });
+  }
+});
+
+app.post('/kjkaaf94nf/api/users/:username/toggle-status', ownerApiGuard, (req, res) => {
+  try {
+    const { username } = req.params;
+    const { status } = req.body;
+    const updated = authVault.toggleUserStatusVault(username, status);
+    res.json({ success: true, message: `Status pengguna berhasil diubah ke ${status}.`, data: updated });
+  } catch (e) {
+    res.status(400).json({ success: false, message: e.message });
+  }
+});
+
+app.post('/kjkaaf94nf/api/users/:username/extend-subscription', ownerApiGuard, (req, res) => {
+  try {
+    const { username } = req.params;
+    const { days } = req.body;
+    const updated = authVault.extendUserSubscriptionVault(username, parseInt(days, 10) || 30);
+    res.json({ success: true, message: 'Masa aktif langganan berhasil diperpanjang.', data: updated });
+  } catch (e) {
+    res.status(400).json({ success: false, message: e.message });
+  }
+});
+
+app.post('/kjkaaf94nf/api/users/:username/reset-password', ownerApiGuard, (req, res) => {
+  try {
+    const { username } = req.params;
+    const { temporary_password } = req.body;
+    if (!temporary_password) {
+      return res.status(400).json({ success: false, message: 'Kata sandi sementara wajib diisi.' });
+    }
+    const updated = authVault.resetUserPasswordByOwner(username, temporary_password);
+    res.json({ success: true, message: 'Kata sandi berhasil direset oleh Owner.', data: updated });
+  } catch (e) {
+    res.status(400).json({ success: false, message: e.message });
+  }
+});
+
+app.get('/kjkaaf94nf/api/users/:username/password-history', ownerApiGuard, (req, res) => {
+  try {
+    const { username } = req.params;
+    const history = authVault.getPasswordHistoryVault(username);
+    res.json({ success: true, username, history });
+  } catch (e) {
+    res.status(400).json({ success: false, message: e.message });
+  }
+});
+
+// ─── Regular Application Pages ────────────────────────────────
 
 app.get('/', pageAuthGuard, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));

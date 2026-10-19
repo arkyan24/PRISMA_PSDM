@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SYIAR — Kelola monitor isu digital untuk mengawasi topik/keyword secara real-time.">
-  <title>SYIAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Monitor</title>
+  <meta name="description" content="PRISMA — PR Intelligence & Social Media — Kelola monitor isu digital untuk mengawasi topik/keyword secara real-time.">
+  <title>PRISMA — PR Intelligence & Social Media — Monitor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,15 +14,18 @@
   <script>
     (function() {
       try {
-        var theme = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
+        var theme = localStorage.getItem('prisma_theme') || localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
         if (!theme) {
           theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         if (theme === 'dark') {
           document.documentElement.setAttribute('data-theme', 'dark');
           document.documentElement.classList.add('dark-theme');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.classList.remove('dark-theme');
         }
-        if ((localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true') {
+        if ((localStorage.getItem('prisma_sidebar_collapsed') || localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true') {
           document.documentElement.classList.add('sidebar-collapsed');
         }
       } catch(e) {}
@@ -43,11 +46,11 @@
     </svg>
   </button>
 
-  <a href="/dashboard" class="nav-brand" title="SYIAR">
+  <a href="/dashboard" class="nav-brand" title="PRISMA — PR Intelligence & Social Media">
     <div class="nav-brand-logo">
-      <img src="/images/logo.png" alt="Logo SYIAR" class="nav-brand-img">
+      <img src="/images/logo.png" alt="Logo PRISMA" class="nav-brand-img">
     </div>
-    <span class="nav-brand-name">SYIAR</span>
+    <span class="nav-brand-name">PRISMA</span>
   </a>
 
   <div class="nav-right">
@@ -76,8 +79,8 @@
       <div class="sidebar-avatar-wrap">
         <div class="sidebar-avatar-letter">P</div>
       </div>
-      <div class="sidebar-profile-title">SYIAR</div>
-      <div class="sidebar-profile-sub">Pusat Syiar Digital Muhammadiyah</div>
+      <div class="sidebar-profile-title">Pusat Syiar Digital Muhammadiyah</div>
+      <div class="sidebar-profile-sub">psdm.muhammadiyah</div>
     </div>
 
     <div class="sidebar-nav">
@@ -506,7 +509,7 @@ async function downloadMonitorReport(id, name) {
   try {
     showToast('Menyusun laporan PDF berbasis AI (4 bagian dokumen)...', 'info');
     
-    const token = (typeof getAuthToken === 'function') ? getAuthToken() : (localStorage.getItem('syiar_auth_token') || localStorage.getItem('pijar_auth_token'));
+    const token = (typeof getAuthToken === 'function') ? getAuthToken() : (localStorage.getItem('prisma_auth_token') || localStorage.getItem('syiar_auth_token') || localStorage.getItem('pijar_auth_token'));
     const headers = {};
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;

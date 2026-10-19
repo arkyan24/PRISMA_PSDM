@@ -1,4 +1,4 @@
-# PRISMA — PR Intelligence & Social Media Analytics
+# PRISMA — PR Intelligence & Social Media
 
 Sistem monitoring isu, pemberitaan media, dan sentimen publik berbasis **Node.js, Express, Google Search API, Python FastAPI, dan Transformer NLP (IndoBERT)**.
 
@@ -112,9 +112,19 @@ Gunakan kredensial berikut untuk masuk ke sistem:
 > [!NOTE]
 > Akun ini otomatis diinisialisasi oleh sistem saat pertama kali dijalankan. Anda dapat mengganti kata sandi kapan saja melalui menu **Pengaturan (`/settings`)**.
 
+### B. Kredensial Portal Master Owner (Persetujuan & Manajemen Akun)
+
+Untuk mengelola pendaftaran akun baru, masa aktif langganan, dan reset kata sandi:
+
+| Field | Nilai Default |
+| :--- | :--- |
+| **URL Portal Owner** | `http://localhost:3000/kjkaaf94nf/` |
+| **Username Owner** | `owner.syiar` |
+| **Password Owner** | `@SyiarOwner2026!` |
+
 ---
 
-### B. Langkah-Langkah Preview Tampilan di Browser
+### C. Langkah-Langkah Preview Tampilan di Browser
 
 1. Pastikan server Node.js dan service IndoBERT telah berjalan sesuai instruksi di Langkah 2 & 3.
 2. Buka browser (Chrome, Edge, Firefox, atau Safari) dan akses tautan:
@@ -154,7 +164,13 @@ Memvalidasi kontrak API, penanganan teks kosong, normalisasi slang, fallback saa
 npm test
 ```
 
-### B. Benchmark Akurasi Komparatif (IndoBERT vs Leksikon)
+### B. Pengujian Laporan PDF & Narasi AI
+Memvalidasi pembuatan laporan PDF resmi, format tanggal Indonesia, formatting platform, caching narasi AI, dan rekomendasi strategis:
+```powershell
+npm run test:pdf
+```
+
+### C. Benchmark Akurasi Komparatif (IndoBERT vs Leksikon)
 Membandingkan kinerja klasifikasi IndoBERT melawan engine lama menggunakan 31 sampel uji teranotasi:
 ```powershell
 .\sentiment_service\.venv\Scripts\python.exe sentiment_service\benchmark.py
@@ -171,21 +187,29 @@ Hasil benchmark aktual:
 ## 7. Struktur File Proyek
 
 ```text
-MAGANG PSDM/
+PRISMA_PSDM/
 ├── public/
-│   ├── css/style.css            # Styling UI, badge sentimen, model pill
-│   ├── js/app.js                # Frontend controller & visualisasi badge
-│   ├── dashboard.html           # Dashboard analitik & diagram sentimen
-│   ├── results.html             # Daftar hasil pemantauan & filter
-│   ├── monitor.html             # Manajemen topik & kata kunci
-│   └── settings.html            # Konfigurasi sistem
+│   ├── css/style.css            # Styling UI, badge sentimen, tema gelap/terang
+│   ├── js/app.js                # Frontend controller, sinkronisasi profil & avatar
+│   ├── dashboard.html           # Dasbor analitik & diagram sentimen
+│   ├── results.html             # Aktivitas pemantauan & filter sentimen
+│   ├── monitor.html             # Manajemen topik, keyword & ekspor PDF AI
+│   ├── settings.html            # Pengaturan akun, password, tema & API Google
+│   ├── login.html               # Formulir login interaktif & aktivasi password awal
+│   ├── register.html            # Formulir permohonan pendaftaran akun pengguna baru
+│   └── kjkaaf94nf/              # Portal Master Owner (Privat & Terisolasi)
+│       ├── index.html           # Konsol persetujuan user & kontrol langganan
+│       └── login.html           # Autentikasi master owner
 ├── src/
+│   ├── auth_vault.js            # Unified Auth Vault, multi-user & approval engine
+│   ├── database.js              # Persistence data terisolasi per-tenant pengguna
 │   ├── nlp_sentiment.js         # Adapter IndoBERT asinkron & fallback kamus
-│   ├── sentiment.js             # Entrypoint publik modul analisis sentimen
-│   ├── database.js              # Persistence data & normalisasi netral/neutral
-│   ├── searcher.js              # Pipeline pencarian & batch inferensi sentimen
+│   ├── sentiment.js             # Bridge kompatibilitas modul sentimen
+│   ├── searcher.js              # Pipeline pencarian web & batch inferensi sentimen
 │   ├── scheduler.js             # Jadwal pemantauan otomatis berkala
-│   └── clustering.js            # Algoritma pengelompokan berita serupa
+│   ├── clustering.js            # Algoritma pengelompokan berita serupa
+│   ├── pdf_report_builder.js    # Generator laporan PDF profesional 4 halaman
+│   └── ai_report_generator.js   # Generator narasi eksekutif & rekomendasi AI
 ├── sentiment_service/
 │   ├── app.py                   # FastAPI REST API untuk IndoBERT
 │   ├── model.py                 # PyTorch singleton wrapper & LRU cache
@@ -193,10 +217,11 @@ MAGANG PSDM/
 │   ├── nlp_lexicon_reference.py # Baseline kamus leksikon
 │   └── requirements.txt         # Dependensi Python
 ├── tests/
-│   └── sentiment_tests.js       # Suite pengujian otomatis integrasi (10/10 PASS)
-├── data/
-│   └── database.json            # Database lokal Prisma
+│   ├── sentiment_tests.js       # Suite pengujian otomatis integrasi sentimen
+│   └── pdf_report_tests.js      # Suite pengujian otomatis laporan PDF & narasi AI
+├── data/                        # [Diabaikan oleh git] Database JSON lokal & tenants
 ├── server.js                    # Web server Express & API routes
 ├── package.json
+├── .env.example
 └── README.md
 ```

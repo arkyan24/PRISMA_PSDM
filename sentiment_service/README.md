@@ -1,6 +1,6 @@
-# Prisma IndoBERT Sentiment Service
+# PRISMA IndoBERT Sentiment Service
 
-Layanan REST API microservice berbasis **Python, FastAPI, PyTorch, dan Hugging Face Transformers** untuk analisis sentimen Bahasa Indonesia berkualitas tinggi pada sistem pemantauan opini publik dan PR Intelligence Prisma.
+Layanan REST API microservice berbasis **Python, FastAPI, PyTorch, dan Hugging Face Transformers** untuk analisis sentimen Bahasa Indonesia berkualitas tinggi pada sistem pemantauan opini publik dan PRISMA (PR Intelligence & Social Media).
 
 ---
 

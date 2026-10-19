@@ -317,7 +317,7 @@ function renderRunningFooter(doc, currentPage, totalPages) {
 
   // Label kiri
   doc.font('DMSans-Regular').fontSize(7.5).fillColor('#94a3b8')
-     .text('PRISMA Intelligence Platform • Dokumen Resmi PSDM Muhammadiyah', startX, y + 6);
+     .text('PRISMA (PR Intelligence & Social Media) • Dokumen Resmi PSDM Muhammadiyah', startX, y + 6);
 
   // Nomor halaman kanan
   doc.font('DMSans-Medium').fontSize(7.5).fillColor('#64748b')
@@ -354,7 +354,7 @@ function renderCoverPage(doc, data) {
      });
 
   doc.font('DMSans-Medium').fontSize(8.5).fillColor('#64748b')
-     .text('PRISMA — PR Intelligence & Social Media Analytics', startX, 164, {
+     .text('PRISMA — PR Intelligence & Social Media', startX, 164, {
        width: contentWidth,
        align: 'center'
      });

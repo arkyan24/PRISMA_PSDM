@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SYIAR — Dashboard analitik monitoring isu real-time dari Google Search Engine & Media Sosial.">
-  <title>SYIAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Analytics Dashboard</title>
+  <meta name="description" content="PRISMA — PR Intelligence & Social Media — Dashboard analitik monitoring isu real-time dari Google Search Engine & Media Sosial.">
+  <title>PRISMA — PR Intelligence & Social Media — Dasbor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,15 +15,18 @@
   <script>
     (function() {
       try {
-        var theme = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
+        var theme = localStorage.getItem('prisma_theme') || localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
         if (!theme) {
           theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         if (theme === 'dark') {
           document.documentElement.setAttribute('data-theme', 'dark');
           document.documentElement.classList.add('dark-theme');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.classList.remove('dark-theme');
         }
-        if ((localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true') {
+        if ((localStorage.getItem('prisma_sidebar_collapsed') || localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true') {
           document.documentElement.classList.add('sidebar-collapsed');
         }
       } catch(e) {}
@@ -45,11 +48,11 @@
     </svg>
   </button>
 
-  <a href="/dashboard" class="nav-brand" title="SYIAR">
+  <a href="/dashboard" class="nav-brand" title="PRISMA — PR Intelligence & Social Media">
     <div class="nav-brand-logo">
-      <img src="/images/logo.png" alt="Logo SYIAR" class="nav-brand-img">
+      <img src="/images/logo.png" alt="Logo PRISMA" class="nav-brand-img">
     </div>
-    <span class="nav-brand-name">SYIAR</span>
+    <span class="nav-brand-name">PRISMA</span>
   </a>
 
   <div class="nav-right">
@@ -81,8 +84,8 @@
       <div class="sidebar-avatar-wrap">
         <div class="sidebar-avatar-letter">P</div>
       </div>
-      <div class="sidebar-profile-title">SYIAR</div>
-      <div class="sidebar-profile-sub">Pusat Syiar Digital Muhammadiyah</div>
+      <div class="sidebar-profile-title">Pusat Syiar Digital Muhammadiyah</div>
+      <div class="sidebar-profile-sub">psdm.muhammadiyah</div>
     </div>
 
     <div class="sidebar-nav">
@@ -964,7 +967,15 @@ function renderTrendChart(results, range = currentDateRange) {
       plugins: {
         legend: {
           position: 'top',
-          labels: { boxWidth: 9, boxHeight: 9, borderRadius: 4, usePointStyle: true, pointStyleWidth: 9, padding: 12, color: legendColor, font: { size: 10, family: 'Poppins' } }
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'circle',
+            boxWidth: 7,
+            boxHeight: 7,
+            padding: 14,
+            color: legendColor,
+            font: { size: 10, family: 'Poppins' }
+          }
         },
         tooltip: {
           backgroundColor: tooltipBg,

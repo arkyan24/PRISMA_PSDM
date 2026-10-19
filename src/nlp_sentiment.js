@@ -1,6 +1,6 @@
 /**
  * Indonesian NLP Sentiment Analysis Engine & IndoBERT Bridge
- * Prisma — PR Intelligence & Social Media Analytics
+ * PRISMA — PR Intelligence & Social Media
  *
  * Integrates state-of-the-art Transformer-based Indonesian Sentiment Analysis (IndoBERT)
  * via Python microservice, with a robust lexical rule-based fallback system.

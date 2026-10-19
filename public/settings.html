@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SYIAR — Pengaturan akun, password, tema, dan otomatisasi monitoring.">
-  <title>SYIAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Pengaturan</title>
+  <meta name="description" content="PRISMA — PR Intelligence & Social Media — Pengaturan akun, password, tema, dan otomatisasi monitoring.">
+  <title>PRISMA — PR Intelligence & Social Media — Pengaturan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,15 +14,18 @@
   <script>
     (function() {
       try {
-        var theme = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
+        var theme = localStorage.getItem('prisma_theme') || localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
         if (!theme) {
           theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         if (theme === 'dark') {
           document.documentElement.setAttribute('data-theme', 'dark');
           document.documentElement.classList.add('dark-theme');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.classList.remove('dark-theme');
         }
-        if ((localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true') {
+        if ((localStorage.getItem('prisma_sidebar_collapsed') || localStorage.getItem('syiar_sidebar_collapsed') || localStorage.getItem('pijar_sidebar_collapsed')) === 'true') {
           document.documentElement.classList.add('sidebar-collapsed');
         }
       } catch(e) {}
@@ -43,11 +46,11 @@
     </svg>
   </button>
 
-  <a href="/dashboard" class="nav-brand" title="SYIAR">
+  <a href="/dashboard" class="nav-brand" title="PRISMA — PR Intelligence & Social Media">
     <div class="nav-brand-logo">
-      <img src="/images/logo.png" alt="Logo SYIAR" class="nav-brand-img">
+      <img src="/images/logo.png" alt="Logo PRISMA" class="nav-brand-img">
     </div>
-    <span class="nav-brand-name">SYIAR</span>
+    <span class="nav-brand-name">PRISMA</span>
   </a>
 
   <div class="nav-right">
@@ -77,8 +80,8 @@
       <div class="sidebar-avatar-wrap">
         <div class="sidebar-avatar-letter">P</div>
       </div>
-      <div class="sidebar-profile-title">SYIAR</div>
-      <div class="sidebar-profile-sub">Pusat Syiar Digital Muhammadiyah</div>
+      <div class="sidebar-profile-title">Pusat Syiar Digital Muhammadiyah</div>
+      <div class="sidebar-profile-sub">psdm.muhammadiyah</div>
     </div>
 
     <div class="sidebar-nav">
@@ -129,71 +132,6 @@
           <h1 class="page-title">Pengaturan</h1>
           <p class="page-title-sub">Kelola preferensi akun, proteksi kredensial, otomatisasi scheduler, dan personalisasi visual</p>
         </div>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <span class="settings-card-badge active" style="padding: 8px 14px; font-size: 0.78rem;">
-            <span class="status-dot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#22c55e; margin-right:6px;"></span>
-            Sistem Siap & Terproteksi
-          </span>
-        </div>
-      </div>
-
-      <!-- ── Summary Stats Row (Exact Environment Match with Monitor Page) ── -->
-      <div class="mon-summary-row fade-in">
-        <!-- 1. Akun Pengguna -->
-        <div class="mon-stat-card mon-stat-standard" id="cardSummaryAccount">
-          <div class="mon-stat-left">
-            <div class="mon-stat-val" id="topAccountVal" style="font-size:1.45rem; text-overflow:ellipsis; overflow:hidden; max-width:180px;">Admin</div>
-            <div class="mon-stat-lbl">Identitas Pengguna</div>
-          </div>
-          <div class="mon-stat-divider"></div>
-          <div class="mon-stat-right">
-            <div class="mon-stat-icon-wrap" id="topAccountAvatarWrap" title="Pengguna Aktif" style="overflow:hidden; display:flex; align-items:center; justify-content:center; padding:0;">
-              <svg id="topAccountSvgIcon" viewBox="0 0 24 24" fill="none" stroke="#F9896B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-              <img id="topAccountAvatarImg" src="" alt="Avatar" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:12px;" />
-            </div>
-          </div>
-        </div>
-
-        <!-- 2. Status Keamanan (Ungu Gradient dengan Donut Persentase Oren #F9896B) -->
-        <div class="mon-stat-card mon-stat-active-purple" id="cardSummarySecurity">
-          <div class="mon-stat-left">
-            <div class="mon-stat-val">100%</div>
-            <div class="mon-stat-lbl">Keamanan & Sesi</div>
-          </div>
-          <div class="mon-stat-divider"></div>
-          <div class="mon-stat-right">
-            <div class="mon-stat-ring-wrap" title="Integritas Sesi Maksimal">
-              <svg class="mon-stat-ring-svg" viewBox="0 0 64 64" width="58" height="58">
-                <circle class="mon-stat-ring-bg" cx="32" cy="32" r="25" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="5" />
-                <circle class="mon-stat-ring-prog" cx="32" cy="32" r="25" fill="none" stroke="#F9896B" stroke-width="5"
-                        stroke-dasharray="157.08"
-                        stroke-dashoffset="0" />
-              </svg>
-              <div class="mon-stat-ring-text">100%</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. Total Aktivitas Terdata -->
-        <div class="mon-stat-card mon-stat-standard" id="cardSummaryResults">
-          <div class="mon-stat-left">
-            <div class="mon-stat-val" id="topTotalResultsVal">—</div>
-            <div class="mon-stat-lbl">Aktivitas Terdata</div>
-          </div>
-          <div class="mon-stat-divider"></div>
-          <div class="mon-stat-right">
-            <div class="mon-stat-icon-wrap" title="Basis Data Pemantauan">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#F9896B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- ── 2 Master Boxes (Full Width Left - Right Layout) ── -->
@@ -228,7 +166,7 @@
               </svg>
               Profil Akun
             </div>
-            <div class="settings-inner-desc">Informasi pengguna yang sedang aktif di sistem SYIAR</div>
+            <div class="settings-inner-desc">Informasi pengguna yang sedang aktif di sistem PRISMA</div>
 
             <div class="user-identity-box">
               <div class="avatar-upload-wrapper">
@@ -377,7 +315,7 @@
               <div>
                 <strong>Lupa Password?</strong>
                 <p style="margin-top:3px; font-size:0.79rem; color:var(--text-muted); line-height:1.45;">
-                  Hubungi tim Administrator Pusat PSDM Muhammadiyah di Kauman, Yogyakarta atau melalui surel resmi <strong>syiardigital@muhammadiyah.id</strong> untuk proses verifikasi reset.
+                  Hubungi tim Administrator Pusat PSDM Muhammadiyah di Kauman, Yogyakarta atau melalui surel resmi <strong>psdm@muhammadiyah.id</strong> untuk proses verifikasi reset.
                 </p>
               </div>
             </div>
@@ -651,17 +589,24 @@
 
   function selectThemeMode(mode) {
     try {
-      localStorage.setItem('syiar_theme', mode);
-      localStorage.setItem('pijar_theme', mode);
-      if (mode === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.documentElement.classList.add('dark-theme');
+      if (typeof setThemeMode === 'function') {
+        setThemeMode(mode);
+      } else if (typeof applyTheme === 'function') {
+        try {
+          localStorage.setItem('prisma_theme', mode);
+          localStorage.setItem('syiar_theme', mode);
+          localStorage.setItem('pijar_theme', mode);
+        } catch (e) {}
+        applyTheme(mode, true);
       } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.documentElement.classList.remove('dark-theme');
+        const isDark = mode === 'dark';
+        document.documentElement.setAttribute('data-theme', mode);
+        document.documentElement.classList.toggle('dark-theme', isDark);
+        if (document.body) {
+          document.body.classList.toggle('dark-theme', isDark);
+        }
       }
       updateThemeUI(mode);
-      showToast(`Mode ${mode === 'dark' ? 'Gelap' : 'Terang'} berhasil diaktifkan`, 'info');
     } catch (e) {
       console.error(e);
     }
@@ -725,13 +670,15 @@
       const avatarUrl = res.user?.avatar_url || null;
       document.getElementById('accountUsername').textContent = username;
       document.getElementById('bannerUsername').textContent = username;
-      document.getElementById('topAccountVal').textContent = username;
+      const topAcc = document.getElementById('topAccountVal');
+      if (topAcc) topAcc.textContent = username;
       
       updateAvatarDisplay(avatarUrl, username);
     } catch (e) {
       document.getElementById('accountUsername').textContent = 'psdm.muhammadiyah';
       document.getElementById('bannerUsername').textContent = 'psdm.muhammadiyah';
-      document.getElementById('topAccountVal').textContent = 'Admin';
+      const topAcc = document.getElementById('topAccountVal');
+      if (topAcc) topAcc.textContent = 'Admin';
       updateAvatarDisplay(null, 'psdm.muhammadiyah');
     }
   }
@@ -791,6 +738,8 @@
           if (data.success) {
             updateAvatarDisplay(data.avatar_url, username);
             try {
+              localStorage.setItem('prisma_user_avatar', data.avatar_url);
+              localStorage.setItem('prisma_user_name', username);
               localStorage.setItem('syiar_user_avatar', data.avatar_url);
               localStorage.setItem('syiar_user_name', username);
             } catch (err) {}
@@ -829,6 +778,7 @@
         const username = document.getElementById('accountUsername').textContent || 'Admin';
         updateAvatarDisplay(null, username);
         try {
+          localStorage.removeItem('prisma_user_avatar');
           localStorage.removeItem('syiar_user_avatar');
         } catch (err) {}
         showToast('Foto profil berhasil dihapus, kembali ke inisial default.', 'success');
@@ -846,10 +796,12 @@
       const res = await api('/api/results/stats');
       if (res.success && res.data) {
         const total = res.data.total || 0;
-        document.getElementById('topTotalResultsVal').textContent = Number(total).toLocaleString('id-ID');
+        const topEl = document.getElementById('topTotalResultsVal');
+        if (topEl) topEl.textContent = Number(total).toLocaleString('id-ID');
       }
     } catch (e) {
-      document.getElementById('topTotalResultsVal').textContent = '0';
+      const topEl = document.getElementById('topTotalResultsVal');
+      if (topEl) topEl.textContent = '0';
     }
   }
 
@@ -959,7 +911,7 @@
 
     document.getElementById('changePasswordForm').addEventListener('submit', changePassword);
 
-    const savedTheme = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
+    const savedTheme = localStorage.getItem('prisma_theme') || localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
     const selectedTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     updateThemeUI(selectedTheme);
   });

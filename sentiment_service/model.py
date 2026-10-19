@@ -1,6 +1,6 @@
 """
 IndoBERT Sentiment Analysis Model Wrapper
-Prisma — PR Intelligence & Social Media Analytics
+PRISMA — PR Intelligence & Social Media
 
 Provides high-performance inference using Hugging Face Transformers
 with the canonical Indonesian BERT model fine-tuned for sentiment analysis.

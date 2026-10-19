@@ -1,0 +1,2092 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>PRISMA — Konsol Pemilik Sistem</title>
+  <link rel="icon" href="/images/logo.png">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* ── Theme & Layout Overrides for Owner Portal ── */
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* Top Navigation matching PRISMA */
+    .owner-topbar {
+      height: 64px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-logo-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(16, 185, 129, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .brand-logo-wrap img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    .brand-text-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-main-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: var(--text);
+    }
+
+    .brand-sub-title {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .owner-role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-left: 8px;
+    }
+
+    .owner-role-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .owner-user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    .owner-user-info strong {
+      color: var(--text);
+    }
+
+    .btn-topbar-logout {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #ef4444;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-topbar-logout:hover {
+      background: #ef4444;
+      color: #ffffff;
+      border-color: #ef4444;
+    }
+
+    /* Main Container */
+    .owner-main-container {
+      max-width: 1320px;
+      width: 100%;
+      margin: 28px auto;
+      padding: 0 24px;
+      flex: 1;
+    }
+
+    /* Page Header */
+    .owner-header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .owner-page-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin: 0 0 6px 0;
+    }
+
+    .owner-page-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin: 0;
+      max-width: 650px;
+      line-height: 1.5;
+    }
+
+    .btn-refresh-header {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-refresh-header:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-refresh-header svg.spin {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Metric Cards Grid */
+    .owner-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .owner-metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .owner-metric-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .metric-icon-wrap {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .metric-icon-wrap.users {
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--accent);
+    }
+
+    .metric-icon-wrap.active {
+      background: rgba(34, 197, 94, 0.12);
+      color: #22c55e;
+    }
+
+    .metric-icon-wrap.pending {
+      background: rgba(245, 158, 11, 0.12);
+      color: #f59e0b;
+    }
+
+    .metric-icon-wrap.suspended {
+      background: rgba(239, 68, 68, 0.12);
+      color: #ef4444;
+    }
+
+    .metric-val {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .metric-lbl {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    /* Tabs Container */
+    .owner-tabs-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .owner-tab-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .owner-tab-item:hover {
+      background: var(--bg-card);
+      color: var(--text);
+    }
+
+    .owner-tab-item.active {
+      background: var(--bg-card);
+      border-color: var(--border);
+      color: var(--accent);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-counter-badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: var(--border);
+      color: var(--text-muted);
+    }
+
+    .owner-tab-item.active .tab-counter-badge {
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--accent);
+    }
+
+    .tab-counter-badge.has-pending {
+      background: #ef4444 !important;
+      color: #ffffff !important;
+    }
+
+    /* Card Panels */
+    .owner-panel {
+      display: none;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .owner-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tables */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .owner-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.84rem;
+    }
+
+    .owner-table th {
+      padding: 14px 18px;
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .owner-table td {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--text);
+    }
+
+    .owner-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .owner-table tbody tr {
+      transition: background 0.15s ease;
+    }
+
+    .owner-table tbody tr:hover {
+      background: rgba(99, 102, 241, 0.03);
+    }
+
+    /* Badges */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .status-pill.active {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+
+    .status-pill.suspended,
+    .status-pill.rejected,
+    .status-pill.expired {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    .status-pill.pending {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+    }
+
+    .status-pill.approved {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--accent);
+    }
+
+    /* Action Buttons in Table */
+    .actions-flex {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-act {
+      padding: 5px 11px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .btn-act-approve {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+
+    .btn-act-approve:hover {
+      background: #22c55e;
+      color: #ffffff;
+      border-color: #22c55e;
+    }
+
+    .btn-act-danger {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    .btn-act-danger:hover {
+      background: #ef4444;
+      color: #ffffff;
+      border-color: #ef4444;
+    }
+
+    .btn-act-subtle {
+      background: var(--bg);
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .btn-act-subtle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .btn-act-extend {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.28);
+      color: var(--accent);
+    }
+
+    .btn-act-extend:hover {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+
+    /* ─── MODAL CONFIRMATION POPUPS ─── */
+    .custom-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: modalFadeIn 0.2s ease;
+    }
+
+    .custom-modal-overlay.active {
+      display: flex;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .custom-modal {
+      width: 100%;
+      max-width: 520px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+    }
+
+    .modal-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-icon-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .modal-icon-badge.warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+    }
+
+    .modal-icon-badge.danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    .modal-icon-badge.success {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+    }
+
+    .modal-icon-badge.info {
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--accent);
+    }
+
+    .modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.4rem;
+      line-height: 1;
+      padding: 4px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+
+    .modal-body {
+      padding: 22px 24px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      background: var(--bg);
+    }
+
+    .btn-modal-cancel {
+      padding: 9px 18px;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-modal-cancel:hover {
+      background: var(--bg-card);
+      color: var(--text);
+    }
+
+    .btn-modal-submit {
+      padding: 9px 20px;
+      border-radius: 8px;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #ffffff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-modal-submit:hover {
+      opacity: 0.92;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .btn-modal-submit.danger {
+      background: #ef4444;
+      border-color: #ef4444;
+    }
+
+    .btn-modal-submit.danger:hover {
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-modal-submit.success {
+      background: #22c55e;
+      border-color: #22c55e;
+    }
+
+    /* Modal Info Box */
+    .modal-info-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    .modal-info-box .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .modal-info-box .info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .modal-info-box .info-lbl {
+      color: var(--text-muted);
+    }
+
+    .modal-info-box .info-val {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .modal-alert-notice {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      line-height: 1.45;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .modal-alert-notice.warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+    }
+
+    .modal-alert-notice.danger {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    .modal-alert-notice.info {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--accent);
+    }
+
+    /* Form Fields inside modal */
+    .modal-form-group {
+      margin-bottom: 16px;
+    }
+
+    .modal-form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .modal-form-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--text);
+      font-size: 0.88rem;
+      font-family: inherit;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease;
+    }
+
+    .modal-form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .input-with-button {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-input-aux {
+      padding: 0 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 9px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .btn-input-aux:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .preset-pills-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .preset-pill-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .preset-pill-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Toast Notification */
+    .owner-toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .owner-toast {
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 12px 18px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .owner-toast.success {
+      border-color: rgba(34, 197, 94, 0.4);
+    }
+
+    .owner-toast.error {
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    @keyframes toastIn {
+      from { transform: translateY(16px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div class="owner-toast-container" id="toastContainer"></div>
+
+  <!-- ── Top Navigation Bar ─────────────────────────────── -->
+  <header class="owner-topbar">
+    <a href="/kjkaaf94nf/" class="brand-section">
+      <div class="brand-logo-wrap">
+        <img src="/images/logo.png" alt="Logo PRISMA">
+      </div>
+      <div class="brand-text-col">
+        <span class="brand-main-title">PRISMA</span>
+        <span class="brand-sub-title">PR Intelligence & Social Media</span>
+      </div>
+      <div class="owner-role-badge">
+        <span class="dot"></span>
+        <span>Master Owner</span>
+      </div>
+    </a>
+
+    <div class="topbar-right">
+      <!-- Global Theme Toggle Button matching PRISMA -->
+      <button type="button" class="nav-theme-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Mode Tampilan" aria-label="Beralih Mode Gelap/Terang">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+
+      <div class="owner-user-info">
+        <span>Owner:</span>
+        <strong id="topbarUsername">owner.syiar</strong>
+      </div>
+
+      <button type="button" class="btn-topbar-logout" onclick="openLogoutModal()" title="Keluar dari Konsol">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Keluar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Main Dashboard Container ───────────────────────── -->
+  <main class="owner-main-container">
+    
+    <!-- Page Header Row -->
+    <div class="owner-header-row">
+      <div>
+        <h1 class="owner-page-title">Konsol Kontrol Pemilik Sistem</h1>
+        <p class="owner-page-desc">
+          Otorisasi permohonan akun baru, manajemen hak akses pengguna, dan kontrol masa aktif langganan.
+        </p>
+      </div>
+
+      <button type="button" class="btn-refresh-header" onclick="loadAllOwnerData(true)" id="btnRefreshData">
+        <svg id="refreshIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+        </svg>
+        <span>Segarkan Data</span>
+      </button>
+    </div>
+
+    <!-- Summary Metrics Grid -->
+    <div class="owner-metrics-grid">
+      <div class="owner-metric-card">
+        <div class="metric-icon-wrap users">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="metric-val" id="metricTotalUsers">0</div>
+          <div class="metric-lbl">Total Pengguna Terdaftar</div>
+        </div>
+      </div>
+
+      <div class="owner-metric-card">
+        <div class="metric-icon-wrap active">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="metric-val" id="metricActiveUsers">0</div>
+          <div class="metric-lbl">Pengguna Aktif</div>
+        </div>
+      </div>
+
+      <div class="owner-metric-card">
+        <div class="metric-icon-wrap pending">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="metric-val" id="metricPendingRegs">0</div>
+          <div class="metric-lbl">Permohonan Menunggu</div>
+        </div>
+      </div>
+
+      <div class="owner-metric-card">
+        <div class="metric-icon-wrap suspended">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </div>
+        <div>
+          <div class="metric-val" id="metricSuspendedUsers">0</div>
+          <div class="metric-lbl">Akun Dinonaktifkan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs Bar -->
+    <div class="owner-tabs-bar">
+      <button type="button" class="owner-tab-item active" id="tabBtnUsers" onclick="switchOwnerTab('users')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="8.5" cy="7" r="4"></circle>
+          <line x1="20" y1="8" x2="20" y2="14"></line>
+          <line x1="23" y1="11" x2="17" y2="11"></line>
+        </svg>
+        <span>Manajemen Pengguna & Langganan</span>
+        <span class="tab-counter-badge" id="badgeUsersCount">0</span>
+      </button>
+
+      <button type="button" class="owner-tab-item" id="tabBtnRegs" onclick="switchOwnerTab('regs')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <span>Permohonan Akun Baru</span>
+        <span class="tab-counter-badge" id="badgePendingCount">0</span>
+      </button>
+    </div>
+
+    <!-- ── Panel 1: Manajemen Pengguna & Langganan ── -->
+    <div class="owner-panel active" id="panelUsers">
+      <div class="table-responsive">
+        <table class="owner-table">
+          <thead>
+            <tr>
+              <th>ID, Username & Database</th>
+              <th>Nama & Lembaga</th>
+              <th>Status Akun</th>
+              <th>Masa Langganan</th>
+              <th>Login Pertama</th>
+              <th style="text-align: right;">Aksi Pengelolaan</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr>
+              <td colspan="6" style="text-align:center; padding: 32px; color: var(--text-muted);">
+                Memuat data pengguna...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Panel 2: Permohonan Akun Baru ── -->
+    <div class="owner-panel" id="panelRegs">
+      <div class="table-responsive">
+        <table class="owner-table">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Nama Lengkap</th>
+              <th>Kontak (Email / HP)</th>
+              <th>Instansi & Jabatan</th>
+              <th>Alamat Instansi</th>
+              <th>Status</th>
+              <th style="text-align: right;">Tindakan</th>
+            </tr>
+          </thead>
+          <tbody id="regsTableBody">
+            <tr>
+              <td colspan="7" style="text-align:center; padding: 32px; color: var(--text-muted);">
+                Memuat permohonan...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ═════════════════════════════════════════════════════
+       POP UP KONFIRMASI MODAL UNTUK SETIAP AKSI KRUSIAL
+       ═════════════════════════════════════════════════════ -->
+
+  <!-- 1. POP UP KONFIRMASI UBAH STATUS (AKTIFKAN / NONAKTIFKAN) -->
+  <div class="custom-modal-overlay" id="modalToggleStatus">
+    <div class="custom-modal">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge danger" id="statusModalIcon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+              <line x1="12" y1="2" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <h3 class="modal-title" id="statusModalTitle">Konfirmasi Ubah Status Pengguna</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalToggleStatus')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info-box">
+          <div class="info-row">
+            <span class="info-lbl">Username:</span>
+            <span class="info-val" id="statusTargetUsername">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-lbl">Nama Pengguna:</span>
+            <span class="info-val" id="statusTargetName">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-lbl">Status Saat Ini:</span>
+            <span class="info-val" id="statusTargetCurrent">-</span>
+          </div>
+        </div>
+
+        <div class="modal-alert-notice danger" id="statusModalNotice">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div id="statusModalNoticeText">
+            Jika dinonaktifkan, pengguna ini tidak akan dapat login ke dalam sistem dan akan melihat pesan <em>"Login gagal, Anda mungkin belum terdaftar."</em>
+          </div>
+        </div>
+
+        <p style="font-size: 0.88rem; color: var(--text); margin: 0; line-height: 1.5;" id="statusModalQuestion">
+          Apakah Anda yakin ingin melanjutkan perubahan status akun ini?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeModal('modalToggleStatus')">Batal</button>
+        <button type="button" class="btn-modal-submit danger" id="btnConfirmStatusSubmit" onclick="executeToggleStatus()">
+          Ya, Lanjutkan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. POP UP PERPANJANG MASA LANGGANAN -->
+  <div class="custom-modal-overlay" id="modalExtendSub">
+    <div class="custom-modal">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge info">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <h3 class="modal-title">Perpanjang Masa Langganan</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalExtendSub')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info-box">
+          <div class="info-row">
+            <span class="info-lbl">Pengguna:</span>
+            <span class="info-val" id="extendTargetUsername">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-lbl">Masa Aktif Saat Ini:</span>
+            <span class="info-val" id="extendCurrentExpiry">-</span>
+          </div>
+        </div>
+
+        <div class="modal-form-group">
+          <label class="modal-form-label" for="extendDaysInput">Tambah Masa Aktif (Jumlah Hari):</label>
+          <input type="number" id="extendDaysInput" class="modal-form-input" value="30" min="1" max="3650" oninput="updateExtendPreview()">
+          
+          <div class="preset-pills-row">
+            <button type="button" class="preset-pill-btn" onclick="setExtendPreset(30)">+30 Hari (1 Bulan)</button>
+            <button type="button" class="preset-pill-btn" onclick="setExtendPreset(90)">+90 Hari (3 Bulan)</button>
+            <button type="button" class="preset-pill-btn" onclick="setExtendPreset(180)">+180 Hari (6 Bulan)</button>
+            <button type="button" class="preset-pill-btn" onclick="setExtendPreset(365)">+365 Hari (1 Tahun)</button>
+          </div>
+        </div>
+
+        <div class="modal-alert-notice info">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <div id="extendPreviewText">
+            Masa aktif baru akan diperpanjang 30 hari ke depan.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeModal('modalExtendSub')">Batal</button>
+        <button type="button" class="btn-modal-submit" id="btnConfirmExtendSubmit" onclick="executeExtendSubscription()">
+          Simpan Perpanjangan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. POP UP RESET KATA SANDI PENGGUNA -->
+  <div class="custom-modal-overlay" id="modalResetPass">
+    <div class="custom-modal">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge warning">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <h3 class="modal-title">Reset Kata Sandi Pengguna</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalResetPass')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info-box">
+          <div class="info-row">
+            <span class="info-lbl">Target Pengguna:</span>
+            <span class="info-val" id="resetTargetUsername">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-lbl">Nama Lengkap:</span>
+            <span class="info-val" id="resetTargetName">-</span>
+          </div>
+        </div>
+
+        <div class="modal-form-group">
+          <label class="modal-form-label" for="resetNewPassInput">Kata Sandi Sementara Baru:</label>
+          <div class="input-with-button">
+            <input type="text" id="resetNewPassInput" class="modal-form-input" style="font-family: monospace; letter-spacing: 0.05em; font-weight: 700;">
+            <button type="button" class="btn-input-aux" onclick="generateRandomPassForReset()">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+              Acak
+            </button>
+            <button type="button" class="btn-input-aux" onclick="copyInputVal('resetNewPassInput')">
+              Salin
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-alert-notice warning">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div>
+            Kata sandi lama pengguna akan otomatis diarsipkan ke <strong>Riwayat Sandi</strong>. Pengguna wajib membuat kata sandi baru saat pertama kali login.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeModal('modalResetPass')">Batal</button>
+        <button type="button" class="btn-modal-submit" id="btnConfirmResetSubmit" onclick="executeResetPassword()">
+          Terapkan Reset Sandi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. POP UP SETUJUI PERMOHONAN AKUN BARU -->
+  <div class="custom-modal-overlay" id="modalApprove">
+    <div class="custom-modal" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge success">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <polyline points="17 11 19 13 23 9"></polyline>
+            </svg>
+          </div>
+          <h3 class="modal-title">Persetujuan Permohonan Akun</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalApprove')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info-box">
+          <div class="info-row">
+            <span class="info-lbl">Nama Pemohon:</span>
+            <span class="info-val" id="appApplicantName">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-lbl">Instansi & Jabatan:</span>
+            <span class="info-val" id="appApplicantInst">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-lbl">Kontak (Email / HP):</span>
+            <span class="info-val" id="appApplicantContact">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-lbl">Alamat Instansi:</span>
+            <span class="info-val" id="appApplicantAddress">-</span>
+          </div>
+        </div>
+
+        <input type="hidden" id="appRegId">
+
+        <div class="modal-form-group">
+          <label class="modal-form-label" for="appUsername">Tentukan Username Pengguna:</label>
+          <input type="text" id="appUsername" class="modal-form-input" placeholder="contoh: haedar.nashir" oninput="updateApproveDbPreview(this.value)" required>
+          <div style="font-size: 0.76rem; color: #10b981; margin-top: 6px; display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.08); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.2);">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <span>Database pribadi otomatis dibuat di: <strong>data/tenants/<span id="previewDbFilename">-</span>.json</strong></span>
+          </div>
+        </div>
+
+        <div class="modal-form-group">
+          <label class="modal-form-label" for="appTempPass">Kata Sandi Sementara Awal:</label>
+          <div class="input-with-button">
+            <input type="text" id="appTempPass" class="modal-form-input" style="font-family: monospace; font-weight: 700; letter-spacing: 0.05em;" required>
+            <button type="button" class="btn-input-aux" onclick="generateRandomPassForApprove()">
+              Acak
+            </button>
+            <button type="button" class="btn-input-aux" onclick="copyInputVal('appTempPass')">
+              Salin
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-form-group">
+          <label class="modal-form-label" for="appSubDays">Masa Langganan Awal (Hari):</label>
+          <input type="number" id="appSubDays" class="modal-form-input" value="30" min="1" max="3650">
+          <div class="preset-pills-row">
+            <button type="button" class="preset-pill-btn" onclick="document.getElementById('appSubDays').value=30">30 Hari (1 Bulan)</button>
+            <button type="button" class="preset-pill-btn" onclick="document.getElementById('appSubDays').value=90">90 Hari (3 Bulan)</button>
+            <button type="button" class="preset-pill-btn" onclick="document.getElementById('appSubDays').value=180">180 Hari (6 Bulan)</button>
+            <button type="button" class="preset-pill-btn" onclick="document.getElementById('appSubDays').value=365">365 Hari (1 Tahun)</button>
+          </div>
+        </div>
+
+        <div class="modal-alert-notice info">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <div>
+            Data pencarian & monitoring pengguna ini akan diisolasi secara mandiri ke file tenant baru. Pengguna <strong>wajib mengganti kata sandi</strong> pada login pertama.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeModal('modalApprove')">Batal</button>
+        <button type="button" class="btn-modal-submit success" id="btnConfirmApproveSubmit" onclick="executeApprove()">
+          Setujui & Buat Akun
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. POP UP TOLAK PERMOHONAN AKUN -->
+  <div class="custom-modal-overlay" id="modalReject">
+    <div class="custom-modal">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge danger">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <h3 class="modal-title">Tolak Permohonan Akun</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalReject')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="rejectRegId">
+        <div class="modal-info-box">
+          <div class="info-row">
+            <span class="info-lbl">Pemohon:</span>
+            <span class="info-val" id="rejectApplicantName">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-lbl">Instansi:</span>
+            <span class="info-val" id="rejectApplicantInst">-</span>
+          </div>
+        </div>
+
+        <div class="modal-form-group">
+          <label class="modal-form-label" for="rejectReasonInput">Alasan Penolakan (Opsional):</label>
+          <input type="text" id="rejectReasonInput" class="modal-form-input" placeholder="contoh: Kuota akun penuh / data tidak valid">
+        </div>
+
+        <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+          Permohonan pendaftaran ini akan ditandai sebagai <strong>Ditolak</strong> dan tidak akan dibuatkan akun login.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeModal('modalReject')">Batal</button>
+        <button type="button" class="btn-modal-submit danger" id="btnConfirmRejectSubmit" onclick="executeReject()">
+          Ya, Tolak Permohonan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. POP UP RIWAYAT KATA SANDI (AUDIT OWNER) -->
+  <div class="custom-modal-overlay" id="modalHistory">
+    <div class="custom-modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge info">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
+          </div>
+          <h3 class="modal-title">Audit Riwayat Sandi Lama</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalHistory')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 14px;">
+          Catatan riwayat password lama untuk pengguna: <strong id="histTargetUsername" style="color: var(--text);">-</strong>
+        </div>
+
+        <div id="histContentList" style="max-height: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+          Memuat riwayat...
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeModal('modalHistory')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. POP UP KONFIRMASI KELUAR (LOGOUT) -->
+  <div class="custom-modal-overlay" id="modalLogout">
+    <div class="custom-modal" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge danger">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </div>
+          <h3 class="modal-title">Konfirmasi Keluar</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalLogout')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: var(--text); margin: 0; line-height: 1.5;">
+          Apakah Anda yakin ingin mengakhiri sesi dan keluar dari <strong>Konsol Pemilik Sistem</strong>?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeModal('modalLogout')">Batal</button>
+        <button type="button" class="btn-modal-submit danger" onclick="executeLogout()">
+          Ya, Keluar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core App JS for global Theme logic -->
+  <script src="/js/app.js"></script>
+  <script>
+    // State
+    let pendingRegs = [];
+    let vaultUsers = [];
+
+    // Pending Action States for Modals
+    let activeStatusTarget = null;
+    let activeExtendTarget = null;
+    let activeResetTarget = null;
+
+    // Toast Notification Helper
+    function showOwnerToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `owner-toast ${type}`;
+      
+      const iconSvg = type === 'success' 
+        ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+        : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+
+      toast.innerHTML = `${iconSvg}<span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+      }, 3500);
+    }
+
+    // Modal Helpers
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove('active');
+    }
+
+    // Close modal on click overlay background or ESC key
+    document.querySelectorAll('.custom-modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.custom-modal-overlay.active').forEach(m => m.classList.remove('active'));
+      }
+    });
+
+    // Tab Switching
+    function switchOwnerTab(tab) {
+      document.querySelectorAll('.owner-tab-item').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.owner-panel').forEach(p => p.classList.remove('active'));
+
+      if (tab === 'regs') {
+        document.getElementById('tabBtnRegs').classList.add('active');
+        document.getElementById('panelRegs').classList.add('active');
+      } else {
+        document.getElementById('tabBtnUsers').classList.add('active');
+        document.getElementById('panelUsers').classList.add('active');
+      }
+    }
+
+    // Load Data
+    async function loadAllOwnerData(isManualRefresh = false) {
+      const refreshIcon = document.getElementById('refreshIcon');
+      if (isManualRefresh && refreshIcon) refreshIcon.classList.add('spin');
+
+      try {
+        const res = await fetch('/kjkaaf94nf/api/dashboard');
+        if (res.status === 401) {
+          window.location.href = '/kjkaaf94nf/login';
+          return;
+        }
+        const data = await res.json();
+        if (data.success) {
+          pendingRegs = data.registrations || [];
+          vaultUsers = data.users || [];
+
+          updateMetrics();
+          renderUsersTable();
+          renderRegistrationsTable();
+
+          if (isManualRefresh) {
+            showOwnerToast('Data berhasil diperbarui.', 'success');
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        showOwnerToast('Gagal memuat data dari server.', 'error');
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove('spin');
+      }
+    }
+
+    function updateMetrics() {
+      const totalUsers = vaultUsers.length;
+      const activeUsers = vaultUsers.filter(u => u.status === 'active').length;
+      const suspendedUsers = vaultUsers.filter(u => u.status !== 'active').length;
+      const pendingCount = pendingRegs.filter(r => r.status === 'pending').length;
+
+      document.getElementById('metricTotalUsers').textContent = totalUsers;
+      document.getElementById('metricActiveUsers').textContent = activeUsers;
+      document.getElementById('metricSuspendedUsers').textContent = suspendedUsers;
+      document.getElementById('metricPendingRegs').textContent = pendingCount;
+
+      document.getElementById('badgeUsersCount').textContent = totalUsers;
+      const badgePending = document.getElementById('badgePendingCount');
+      badgePending.textContent = pendingCount;
+      if (pendingCount > 0) {
+        badgePending.classList.add('has-pending');
+      } else {
+        badgePending.classList.remove('has-pending');
+      }
+    }
+
+    // Render Users Table
+    function renderUsersTable() {
+      const tbody = document.getElementById('usersTableBody');
+      if (vaultUsers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 36px; color: var(--text-muted);">Belum ada akun pengguna terdaftar.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = vaultUsers.map(u => {
+        const isExpired = u.subscription_expires_at && new Date(u.subscription_expires_at).getTime() < Date.now();
+        const subDateStr = u.subscription_expires_at 
+          ? new Date(u.subscription_expires_at).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) 
+          : 'Permanen';
+        
+        const isActive = u.status === 'active';
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: var(--text); font-size: 0.92rem;">${escapeHtml(u.username)}</div>
+              <div style="font-size: 0.73rem; color: var(--text-muted); margin-bottom: 2px;">ID: #${u.id}</div>
+              <div style="font-size: 0.72rem; color: #10b981; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.1); padding: 2px 7px; border-radius: 5px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                <span>📁 DB:</span>
+                <span style="font-family: monospace; font-weight: 600;">data/tenants/${escapeHtml(u.username)}.json</span>
+              </div>
+            </td>
+            <td>
+              <div style="font-weight: 600; color: var(--text);">${escapeHtml(u.full_name || u.username)}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(u.institution || '-')}</div>
+            </td>
+            <td>
+              <span class="status-pill ${isActive ? 'active' : 'suspended'}">
+                ${isActive ? 'Aktif' : 'Dinonaktifkan'}
+              </span>
+            </td>
+            <td>
+              <div style="font-size: 0.82rem; font-weight: 600; color: var(--text);">${subDateStr}</div>
+              ${isExpired ? '<span class="status-pill expired" style="margin-top:4px;">Kedaluwarsa</span>' : ''}
+            </td>
+            <td>
+              ${u.must_change_password 
+                ? '<span style="color:#f59e0b; font-size:0.75rem; font-weight:700;">Wajib Ganti Password</span>' 
+                : '<span style="color:#22c55e; font-size:0.75rem; font-weight:600;">Sudah Aktif</span>'}
+            </td>
+            <td>
+              <div class="actions-flex" style="justify-content: flex-end;">
+                <button type="button" class="btn-act ${isActive ? 'btn-act-danger' : 'btn-act-approve'}" onclick="promptToggleStatus('${u.username}')">
+                  ${isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                </button>
+                <button type="button" class="btn-act btn-act-extend" onclick="promptExtendSubscription('${u.username}')">
+                  + Langganan
+                </button>
+                <button type="button" class="btn-act btn-act-subtle" onclick="promptResetPassword('${u.username}')">
+                  Reset Sandi
+                </button>
+                <button type="button" class="btn-act btn-act-subtle" onclick="promptViewPasswordHistory('${u.username}')">
+                  Riwayat Sandi
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Render Registrations Table
+    function renderRegistrationsTable() {
+      const tbody = document.getElementById('regsTableBody');
+      if (pendingRegs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 36px; color: var(--text-muted);">Belum ada permohonan pendaftaran.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = pendingRegs.map(r => {
+        const dateStr = new Date(r.created_at).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        const isPending = r.status === 'pending';
+
+        return `
+          <tr>
+            <td style="color: var(--text-muted); font-size: 0.78rem;">${dateStr}</td>
+            <td style="font-weight: 700; color: var(--text);">${escapeHtml(r.full_name)}</td>
+            <td>
+              <div style="font-weight: 500;">${escapeHtml(r.email)}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(r.phone)}</div>
+            </td>
+            <td>
+              <div style="font-weight: 600;">${escapeHtml(r.institution)}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(r.position)}</div>
+            </td>
+            <td style="font-size: 0.78rem; color: var(--text-muted); max-width: 220px; line-height: 1.4;">
+              ${escapeHtml(r.institution_address)}
+            </td>
+            <td>
+              <span class="status-pill ${r.status}">
+                ${r.status === 'pending' ? 'Menunggu' : (r.status === 'approved' ? 'Disetujui' : 'Ditolak')}
+              </span>
+            </td>
+            <td>
+              <div class="actions-flex" style="justify-content: flex-end;">
+                ${isPending ? `
+                  <button type="button" class="btn-act btn-act-approve" onclick="promptApprove(${r.id})">Setujui</button>
+                  <button type="button" class="btn-act btn-act-danger" onclick="promptReject(${r.id})">Tolak</button>
+                ` : `
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">Selesai (${escapeHtml(r.assigned_username || '-')})</span>
+                `}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ─── 1. MODAL: TOGGLE STATUS (AKTIFKAN / NONAKTIFKAN) ───
+    function promptToggleStatus(username) {
+      const user = vaultUsers.find(u => u.username === username);
+      if (!user) return;
+
+      activeStatusTarget = user;
+      const isCurrentlyActive = user.status === 'active';
+
+      document.getElementById('statusTargetUsername').textContent = user.username;
+      document.getElementById('statusTargetName').textContent = user.full_name || user.username;
+      document.getElementById('statusTargetCurrent').textContent = isCurrentlyActive ? 'Aktif' : 'Dinonaktifkan';
+
+      const title = document.getElementById('statusModalTitle');
+      const noticeText = document.getElementById('statusModalNoticeText');
+      const question = document.getElementById('statusModalQuestion');
+      const submitBtn = document.getElementById('btnConfirmStatusSubmit');
+      const icon = document.getElementById('statusModalIcon');
+
+      if (isCurrentlyActive) {
+        title.textContent = 'Konfirmasi Nonaktifkan Akun';
+        noticeText.innerHTML = 'Jika dinonaktifkan, akun <strong>' + escapeHtml(user.username) + '</strong> tidak akan bisa login ke sistem dan akan melihat pesan: <em>"Login gagal, Anda mungkin belum terdaftar."</em>';
+        question.textContent = 'Apakah Anda yakin ingin menonaktifkan akun ini?';
+        submitBtn.textContent = 'Ya, Nonaktifkan Akun';
+        submitBtn.className = 'btn-modal-submit danger';
+        icon.className = 'modal-icon-badge danger';
+      } else {
+        title.textContent = 'Konfirmasi Aktifkan Kembali Akun';
+        noticeText.innerHTML = 'Akun <strong>' + escapeHtml(user.username) + '</strong> akan diaktifkan kembali sehingga pengguna dapat login dan mengakses dashboard.';
+        question.textContent = 'Apakah Anda yakin ingin mengaktifkan kembali akun ini?';
+        submitBtn.textContent = 'Ya, Aktifkan Akun';
+        submitBtn.className = 'btn-modal-submit success';
+        icon.className = 'modal-icon-badge success';
+      }
+
+      openModal('modalToggleStatus');
+    }
+
+    async function executeToggleStatus() {
+      if (!activeStatusTarget) return;
+      const btn = document.getElementById('btnConfirmStatusSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      const nextStatus = activeStatusTarget.status === 'active' ? 'suspended' : 'active';
+
+      try {
+        const res = await fetch(`/kjkaaf94nf/api/users/${activeStatusTarget.username}/toggle-status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          closeModal('modalToggleStatus');
+          showOwnerToast(`Status akun ${activeStatusTarget.username} berhasil diubah.`);
+          loadAllOwnerData();
+        } else {
+          showOwnerToast(data.message || 'Gagal mengubah status.', 'error');
+        }
+      } catch (e) {
+        showOwnerToast('Terjadi kesalahan jaringan.', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ─── 2. MODAL: EXTEND SUBSCRIPTION (+ LANGGANAN) ───
+    function promptExtendSubscription(username) {
+      const user = vaultUsers.find(u => u.username === username);
+      if (!user) return;
+
+      activeExtendTarget = user;
+      document.getElementById('extendTargetUsername').textContent = user.username;
+      
+      const subDateStr = user.subscription_expires_at 
+        ? new Date(user.subscription_expires_at).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }) 
+        : 'Permanen';
+      document.getElementById('extendCurrentExpiry').textContent = subDateStr;
+      
+      document.getElementById('extendDaysInput').value = '30';
+      updateExtendPreview();
+      openModal('modalExtendSub');
+    }
+
+    function setExtendPreset(days) {
+      document.getElementById('extendDaysInput').value = days;
+      updateExtendPreview();
+    }
+
+    function updateExtendPreview() {
+      if (!activeExtendTarget) return;
+      const days = parseInt(document.getElementById('extendDaysInput').value) || 0;
+      let baseTime = Date.now();
+      if (activeExtendTarget.subscription_expires_at) {
+        const currentExp = new Date(activeExtendTarget.subscription_expires_at).getTime();
+        if (currentExp > baseTime) baseTime = currentExp;
+      }
+
+      const newDate = new Date(baseTime + days * 24 * 3600 * 1000);
+      const formatted = newDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      document.getElementById('extendPreviewText').innerHTML = `Masa aktif baru akan diperpanjang <strong>${days} hari</strong> (berlaku hingga: <strong>${formatted}</strong>).`;
+    }
+
+    async function executeExtendSubscription() {
+      if (!activeExtendTarget) return;
+      const days = parseInt(document.getElementById('extendDaysInput').value);
+      if (!days || days < 1) {
+        showOwnerToast('Jumlah hari harus lebih dari 0.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btnConfirmExtendSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      try {
+        const res = await fetch(`/kjkaaf94nf/api/users/${activeExtendTarget.username}/extend-subscription`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ days })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          closeModal('modalExtendSub');
+          showOwnerToast(`Masa langganan ${activeExtendTarget.username} berhasil diperpanjang.`);
+          loadAllOwnerData();
+        } else {
+          showOwnerToast(data.message || 'Gagal memperpanjang langganan.', 'error');
+        }
+      } catch (e) {
+        showOwnerToast('Terjadi kesalahan jaringan.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Perpanjangan';
+      }
+    }
+
+    // ─── 3. MODAL: RESET PASSWORD ───
+    function promptResetPassword(username) {
+      const user = vaultUsers.find(u => u.username === username);
+      if (!user) return;
+
+      activeResetTarget = user;
+      document.getElementById('resetTargetUsername').textContent = user.username;
+      document.getElementById('resetTargetName').textContent = user.full_name || user.username;
+      generateRandomPassForReset();
+      openModal('modalResetPass');
+    }
+
+    function generateRandomPassForReset() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+      let pass = 'Prisma-';
+      for (let i = 0; i < 6; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('resetNewPassInput').value = pass;
+    }
+
+    async function executeResetPassword() {
+      if (!activeResetTarget) return;
+      const newPass = document.getElementById('resetNewPassInput').value.trim();
+      if (!newPass || newPass.length < 6) {
+        showOwnerToast('Kata sandi sementara minimal 6 karakter.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btnConfirmResetSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Mereset...';
+
+      try {
+        const res = await fetch(`/kjkaaf94nf/api/users/${activeResetTarget.username}/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ temporary_password: newPass })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          closeModal('modalResetPass');
+          showOwnerToast(`Kata sandi ${activeResetTarget.username} berhasil disetel ulang.`);
+          loadAllOwnerData();
+        } else {
+          showOwnerToast(data.message || 'Gagal mereset kata sandi.', 'error');
+        }
+      } catch (e) {
+        showOwnerToast('Terjadi kesalahan jaringan.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Terapkan Reset Sandi';
+      }
+    }
+
+    // ─── 4. MODAL: APPROVE REGISTRATION ───
+    function promptApprove(regId) {
+      const reg = pendingRegs.find(r => r.id === regId);
+      if (!reg) return;
+
+      document.getElementById('appRegId').value = reg.id;
+      document.getElementById('appApplicantName').textContent = reg.full_name;
+      document.getElementById('appApplicantInst').textContent = `${reg.institution} (${reg.position})`;
+      document.getElementById('appApplicantContact').textContent = `${reg.email} / ${reg.phone}`;
+      document.getElementById('appApplicantAddress').textContent = reg.institution_address || '-';
+
+      // Suggest username
+      let suggested = reg.email.split('@')[0].toLowerCase().replace(/[^a-z0-9._]/g, '');
+      const defaultUsername = suggested || 'user.' + reg.id;
+      document.getElementById('appUsername').value = defaultUsername;
+      updateApproveDbPreview(defaultUsername);
+      generateRandomPassForApprove();
+      document.getElementById('appSubDays').value = '30';
+
+      openModal('modalApprove');
+    }
+
+    function updateApproveDbPreview(val) {
+      const safe = (val.trim() || 'user').toLowerCase().replace(/[^a-z0-9._]/g, '_');
+      document.getElementById('previewDbFilename').textContent = safe;
+    }
+
+    function generateRandomPassForApprove() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+      let pass = 'Prisma-';
+      for (let i = 0; i < 6; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('appTempPass').value = pass;
+    }
+
+    async function executeApprove() {
+      const regId = document.getElementById('appRegId').value;
+      const username = document.getElementById('appUsername').value.trim();
+      const tempPass = document.getElementById('appTempPass').value.trim();
+      const subDays = document.getElementById('appSubDays').value;
+
+      if (!username || !tempPass) {
+        showOwnerToast('Username dan kata sandi sementara wajib diisi.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btnConfirmApproveSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Memproses...';
+
+      try {
+        const res = await fetch(`/kjkaaf94nf/api/registrations/${regId}/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: username,
+            temporary_password: tempPass,
+            subscription_days: parseInt(subDays) || 30
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          closeModal('modalApprove');
+          showOwnerToast(`Akun & database pribadi (data/tenants/${username}.json) berhasil dibuat!`);
+          loadAllOwnerData();
+        } else {
+          showOwnerToast(data.message || 'Gagal menyetujui permohonan.', 'error');
+        }
+      } catch (err) {
+        showOwnerToast('Terjadi kesalahan jaringan.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Setujui & Buat Akun';
+      }
+    }
+
+    // ─── 5. MODAL: REJECT REGISTRATION ───
+    function promptReject(regId) {
+      const reg = pendingRegs.find(r => r.id === regId);
+      if (!reg) return;
+
+      document.getElementById('rejectRegId').value = reg.id;
+      document.getElementById('rejectApplicantName').textContent = reg.full_name;
+      document.getElementById('rejectApplicantInst').textContent = reg.institution;
+      document.getElementById('rejectReasonInput').value = '';
+      openModal('modalReject');
+    }
+
+    async function executeReject() {
+      const regId = document.getElementById('rejectRegId').value;
+      const reason = document.getElementById('rejectReasonInput').value.trim();
+
+      const btn = document.getElementById('btnConfirmRejectSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Memproses...';
+
+      try {
+        const res = await fetch(`/kjkaaf94nf/api/registrations/${regId}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: reason || 'Ditolak oleh Owner' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          closeModal('modalReject');
+          showOwnerToast('Permohonan pendaftaran berhasil ditolak.');
+          loadAllOwnerData();
+        } else {
+          showOwnerToast(data.message || 'Gagal menolak permohonan.', 'error');
+        }
+      } catch (e) {
+        showOwnerToast('Koneksi server bermasalah.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Ya, Tolak Permohonan';
+      }
+    }
+
+    // ─── 6. MODAL: VIEW PASSWORD HISTORY ───
+    async function promptViewPasswordHistory(username) {
+      document.getElementById('histTargetUsername').textContent = username;
+      const listEl = document.getElementById('histContentList');
+      listEl.innerHTML = '<div style="color:var(--text-muted); padding: 12px 0;">Memuat riwayat...</div>';
+      openModal('modalHistory');
+
+      try {
+        const res = await fetch(`/kjkaaf94nf/api/users/${username}/password-history`);
+        const data = await res.json();
+        if (res.ok && data.success) {
+          const list = data.history || [];
+          if (list.length === 0) {
+            listEl.innerHTML = '<div style="color:var(--text-muted); padding: 12px 0; text-align:center;">Belum ada catatan riwayat perubahan kata sandi.</div>';
+          } else {
+            listEl.innerHTML = list.map((item, idx) => {
+              const dt = new Date(item.changed_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+              return `
+                <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;">
+                  <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">
+                    <span>Entri #${idx + 1}</span>
+                    <span>${dt}</span>
+                  </div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <div style="font-size:0.86rem; color:#ef4444; font-family:monospace; word-break:break-all; font-weight:700;">
+                      ${escapeHtml(item.old_password_plain || '(Terenkripsi)')}
+                    </div>
+                    <button type="button" class="btn-act btn-act-subtle" onclick="copyText('${escapeHtml(item.old_password_plain || '')}')">
+                      Salin
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        } else {
+          listEl.innerHTML = '<div style="color:#ef4444; padding: 12px 0;">Gagal memuat riwayat sandi.</div>';
+        }
+      } catch (e) {
+        listEl.innerHTML = '<div style="color:#ef4444; padding: 12px 0;">Terjadi kesalahan jaringan.</div>';
+      }
+    }
+
+    // ─── 7. MODAL: LOGOUT ───
+    function openLogoutModal() {
+      openModal('modalLogout');
+    }
+
+    async function executeLogout() {
+      try {
+        await fetch('/kjkaaf94nf/api/logout', { method: 'POST' });
+      } catch(e) {}
+      window.location.href = '/kjkaaf94nf/login';
+    }
+
+    // Utility Helpers
+    function copyInputVal(inputId) {
+      const el = document.getElementById(inputId);
+      if (el) {
+        copyText(el.value);
+      }
+    }
+
+    function copyText(text) {
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        showOwnerToast('Teks berhasil disalin ke clipboard.');
+      }).catch(() => {
+        showOwnerToast('Gagal menyalin teks.', 'error');
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Auto-load on initialize
+    loadAllOwnerData();
+  </script>
+</body>
+</html>
