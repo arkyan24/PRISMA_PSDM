@@ -74,7 +74,7 @@
   <aside class="sidebar">
     <div class="sidebar-brand-profile">
       <div class="sidebar-avatar-wrap">
-        <img src="/images/logo.png" alt="Logo SYIAR" class="sidebar-avatar-img">
+        <div class="sidebar-avatar-letter">P</div>
       </div>
       <div class="sidebar-profile-title">SYIAR</div>
       <div class="sidebar-profile-sub">Pusat Syiar Digital Muhammadiyah</div>
@@ -425,13 +425,15 @@ function renderMonitors(monitors) {
               <span>Scan</span>
             </button>
           ` : ''}
-          <button type="button" class="mon-bottom-btn" onclick="downloadMonitorReport(${m.id}, '${escapeHtml(m.name)}')" title="Unduh Laporan">
+          <button type="button" class="mon-bottom-btn" id="btn-pdf-${m.id}" onclick="downloadMonitorReport(${m.id}, '${escapeHtml(m.name)}')" title="Download Laporan PDF">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="8 12 12 16 16 12"></polyline>
-              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
-            <span>Unduh Laporan</span>
+            <span>Unduh Laporan PDF</span>
           </button>
         </div>
       </div>
@@ -481,44 +483,67 @@ function formatRelativeNext(isoString, isActive) {
 }
 
 async function downloadMonitorReport(id, name) {
+  const btn = document.getElementById(`btn-pdf-${id}`);
+  let originalHtml = '';
+  if (btn) {
+    originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `
+      <svg class="spin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;animation:spin 1s linear infinite;">
+        <line x1="12" y1="2" x2="12" y2="6"></line>
+        <line x1="12" y1="18" x2="12" y2="22"></line>
+        <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+        <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+        <line x1="2" y1="12" x2="6" y2="12"></line>
+        <line x1="18" y1="12" x2="22" y2="12"></line>
+        <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+        <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+      </svg>
+      <span>Menyusun AI PDF...</span>
+    `;
+  }
+
   try {
-    showToast('Menyiapkan laporan...', 'info');
-    const res = await api(`/api/results?monitor_id=${id}&limit=1000`);
-    const results = res.data || [];
+    showToast('Menyusun laporan PDF berbasis AI (4 bagian dokumen)...', 'info');
     
-    let csv = '\uFEFF'; // UTF-8 BOM
-    csv += 'ID,Judul,Platform,Sentimen,Skor Sentimen,URL,Waktu Pemindaian\n';
-    
-    if (results.length > 0) {
-      results.forEach(r => {
-        const title = (r.title || '').replace(/"/g, '""');
-        const platform = (r.platform || '').replace(/"/g, '""');
-        const sentiment = (r.sentiment || '').replace(/"/g, '""');
-        const score = r.sentiment_score !== undefined ? r.sentiment_score : '';
-        const url = (r.url || '').replace(/"/g, '""');
-        const time = r.scanned_at || '';
-        csv += `${r.id},"${title}","${platform}","${sentiment}",${score},"${url}","${time}"\n`;
-      });
-    } else {
-      csv += `1,"Belum ada hasil temuan untuk monitor ini","-","-",0,"-","${new Date().toISOString()}"\n`;
+    const token = (typeof getAuthToken === 'function') ? getAuthToken() : (localStorage.getItem('syiar_auth_token') || localStorage.getItem('pijar_auth_token'));
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+
+    const response = await fetch(`/api/reports/pdf?monitor_id=${id}`, {
+      headers
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.message || `Gagal mengambil PDF (Status ${response.status})`);
+    }
+
+    const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const safeTitle = (name || 'monitor').toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const todayStr = new Date().toISOString().slice(0, 10);
     a.href = blobUrl;
-    a.download = `laporan-monitor-${safeTitle}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `laporan-pantauan-sosial-media-${todayStr}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(blobUrl);
-    
-    showToast(`Laporan "${name}" berhasil diunduh`, 'success');
+
+    showToast(`Laporan PDF "${name}" berhasil diunduh!`, 'success');
   } catch (err) {
-    showToast('Gagal mengunduh laporan: ' + err.message, 'error');
+    console.error('Download PDF error:', err);
+    showToast('Gagal mengunduh laporan PDF: ' + err.message, 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
   }
 }
+
 
 // ─── Modal functions ──────────────────────────────
 function openCreateModal() {

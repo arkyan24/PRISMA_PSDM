@@ -605,6 +605,34 @@ function getResultCount() {
   return getDb().results.length;
 }
 
+function updateResultNarrative(id, narrative) {
+  const db = getDb();
+  const r = db.results.find(x => x.id === id);
+  if (r) {
+    r.ai_narrative = narrative;
+    save();
+    return true;
+  }
+  return false;
+}
+
+function updateResultNarrativesBatch(itemsWithNarrative) {
+  const db = getDb();
+  let modified = false;
+  for (const item of itemsWithNarrative) {
+    if (!item.id || !item.ai_narrative) continue;
+    const r = db.results.find(x => x.id === item.id);
+    if (r && r.ai_narrative !== item.ai_narrative) {
+      r.ai_narrative = item.ai_narrative;
+      modified = true;
+    }
+  }
+  if (modified) {
+    save();
+  }
+}
+
+
 // ─── Scan Logs ────────────────────────────────────────
 function createScanLog(monitorId = null) {
   const db = getDb();
@@ -813,6 +841,28 @@ function destroySession(token) {
   return false;
 }
 
+function getUserProfile(username) {
+  const db = getDb();
+  if (!username) return null;
+  const user = (db.users || []).find(u => u.username.toLowerCase() === username.trim().toLowerCase());
+  if (!user) return null;
+  return {
+    username: user.username,
+    avatar_url: user.avatar_url || null,
+    created_at: user.created_at
+  };
+}
+
+function updateUserAvatar(username, avatarUrl) {
+  const db = getDb();
+  if (!username) return false;
+  const user = (db.users || []).find(u => u.username.toLowerCase() === username.trim().toLowerCase());
+  if (!user) return false;
+  user.avatar_url = avatarUrl;
+  save();
+  return true;
+}
+
 // Initialize on load
 load();
 initDefaultUser();
@@ -821,6 +871,8 @@ migrateKeywordsToMonitors();
 console.log('[DB] Database loaded from', DB_FILE);
 
 module.exports = {
+  getUserProfile,
+  updateUserAvatar,
   getSetting,
   setSetting,
   getAllSettings,
@@ -848,6 +900,9 @@ module.exports = {
   getLatestResults,
   clearAllResults,
   getResultCount,
+  updateResultNarrative,
+  updateResultNarrativesBatch,
+
   // Scan logs
   createScanLog,
   completeScanLog,

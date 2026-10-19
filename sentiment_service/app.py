@@ -126,22 +126,54 @@ def predict(payload: SingleTextRequest):
         raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
 
 
-@app.post("/predict_batch", response_model=List[SentimentResult])
-def predict_batch(payload: BatchTextRequest):
-    if classifier is None:
-        raise HTTPException(status_code=503, detail="Sentiment model is not loaded yet")
+class NarrativeRequest(BaseModel):
+    title: Optional[str] = Field(default="", description="News headline or title")
+    snippet: Optional[str] = Field(default="", description="Snippet or brief body excerpt")
+    platform: Optional[str] = Field(default="", description="Platform source name")
+    sentiment: Optional[str] = Field(default="", description="Classified sentiment")
+    confidence: Optional[float] = Field(default=0.0, description="Confidence score percentage")
+    keyword: Optional[str] = Field(default="", description="Monitored keyword")
 
-    start_time = time.time()
-    try:
-        results = classifier.predict_batch(payload.texts)
-        total_ms = (time.time() - start_time) * 1000
-        per_item_ms = round(total_ms / max(len(results), 1), 2)
-        for r in results:
-            r["elapsed_ms"] = per_item_ms
-        return results
-    except Exception as e:
-        logger.error(f"Batch prediction error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Batch inference error: {str(e)}")
+
+@app.post("/narrative")
+def generate_narrative_endpoint(payload: NarrativeRequest):
+    title = (payload.title or "").strip()
+    snippet = (payload.snippet or "").strip()
+    platform = (payload.platform or "Portal Media").strip()
+    sentiment = (payload.sentiment or "Netral").capitalize()
+    confidence = round(payload.confidence or 75.0)
+    keyword = (payload.keyword or "Muhammadiyah").strip()
+
+    # Kalimat 1: Inti pemberitaan
+    if snippet and len(snippet) > 20 and snippet != title:
+        brief = snippet[:100] + ("..." if len(snippet) > 100 else "")
+        s1 = f'Pemberitaan pada media {platform} mengangkat headline "{title}", menginformasikan bahwa {brief}.'
+    elif title:
+        s1 = f'Pemberitaan pada platform {platform} teridentifikasi melalui tajuk "{title}". Keterangan analisis ini disusun berbasis keterbatasan informasi tajuk berita.'
+    else:
+        return {"narrative": f"Publikasi pada kanal {platform} belum memuat informasi memadai untuk telaah naratif."}
+
+    # Kalimat 2: Klasifikasi & konteks
+    if sentiment == "Positif":
+        s2 = f"Sistem menandai isu ini bersentimen Positif dengan keyakinan {confidence}% atas indikasi capaian dan kemaslahatan {keyword}."
+    elif sentiment == "Negatif":
+        s2 = f"Tercatat bersentimen Negatif dengan keyakinan {confidence}% yang merefleksikan catatan kritis publik; temuan ini bukan hoaks melainkan muatan opini yang perlu dicermati."
+    else:
+        s2 = f"Klasifikasi menunjukkan sentimen Netral dengan keyakinan {confidence}% yang mencerminkan pelaporan agenda atau rilis faktual lurus."
+
+    # Kalimat 3: Relevansi kehumasan
+    if sentiment == "Positif":
+        s3 = "Informasi ini berpotensi memperkuat citra persyarikatan dan dapat diamplifikasi pada kanal resmi."
+    elif sentiment == "Negatif":
+        s3 = "Institusi disarankan melakukan verifikasi silang terhadap materi isu guna mengantisipasi pembentukan framing publik sepihak."
+    else:
+        s3 = "Pemberitaan ini berfungsi memperkaya dokumentasi pemantauan media berkala persyarikatan."
+
+    return {
+        "status": "success",
+        "narrative": f"{s1} {s2} {s3}"
+    }
+
 
 
 if __name__ == "__main__":

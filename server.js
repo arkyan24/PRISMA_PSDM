@@ -4,13 +4,15 @@ const cors = require('cors');
 const path = require('path');
 const db = require('./src/database');
 const scheduler = require('./src/scheduler');
+const { buildPDFReport } = require('./src/pdf_report_builder');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ─── Middleware ───────────────────────────────────────────────
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Public static assets (css, js, images, fonts)
 app.use('/css', express.static(path.join(__dirname, 'public', 'css')));
@@ -105,7 +107,15 @@ app.get('/api/auth/me', (req, res) => {
   if (!session) {
     return res.status(401).json({ success: false, authenticated: false });
   }
-  res.json({ success: true, authenticated: true, user: { username: session.username } });
+  const profile = db.getUserProfile(session.username);
+  res.json({
+    success: true,
+    authenticated: true,
+    user: {
+      username: session.username,
+      avatar_url: profile?.avatar_url || null
+    }
+  });
 });
 
 // Guard all other /api/* routes
@@ -114,6 +124,55 @@ app.use('/api', (req, res, next) => {
     return next();
   }
   apiAuthGuard(req, res, next);
+});
+
+app.post('/api/auth/avatar', (req, res) => {
+  try {
+    const { avatar } = req.body;
+    const username = req.user.username;
+    const avatarsDir = path.join(__dirname, 'public', 'images', 'avatars');
+    if (!fs.existsSync(avatarsDir)) {
+      fs.mkdirSync(avatarsDir, { recursive: true });
+    }
+
+    if (!avatar) {
+      db.updateUserAvatar(username, null);
+      return res.json({ success: true, message: 'Foto profil berhasil dihapus.', avatar_url: null });
+    }
+
+    const matches = avatar.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+    if (!matches) {
+      return res.status(400).json({ success: false, message: 'Format gambar tidak valid. Harus format data URL base64.' });
+    }
+
+    let ext = matches[1].toLowerCase();
+    if (ext === 'jpeg') ext = 'jpg';
+    if (!['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) {
+      return res.status(400).json({ success: false, message: 'Format file tidak didukung. Gunakan PNG, JPG, atau WebP.' });
+    }
+
+    const buffer = Buffer.from(matches[2], 'base64');
+    if (buffer.length > 5 * 1024 * 1024) {
+      return res.status(400).json({ success: false, message: 'Ukuran file melebihi batas maksimal 5 MB.' });
+    }
+
+    const safeUsername = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = `avatar_${safeUsername}.${ext}`;
+    const filePath = path.join(avatarsDir, filename);
+
+    fs.writeFileSync(filePath, buffer);
+    const avatarUrl = `/images/avatars/${filename}?v=${Date.now()}`;
+    db.updateUserAvatar(username, avatarUrl);
+
+    res.json({
+      success: true,
+      message: 'Foto profil berhasil diperbarui.',
+      avatar_url: avatarUrl
+    });
+  } catch (err) {
+    console.error('[Avatar] Error saving avatar:', err);
+    res.status(500).json({ success: false, message: 'Gagal memproses foto profil: ' + err.message });
+  }
 });
 
 app.post('/api/auth/change-password', (req, res) => {
@@ -465,6 +524,53 @@ app.get('/api/scan-logs', (req, res) => {
     res.json({ success: true, data: logs });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// ─── API: Reports (PDF Export) ────────────────────────────────
+app.get('/api/reports/pdf', async (req, res) => {
+  try {
+    const monitorId = req.query.monitor_id ? parseInt(req.query.monitor_id) : null;
+    let monitor = null;
+    if (monitorId) {
+      monitor = db.getMonitor(monitorId);
+    }
+
+    const limit = req.query.limit ? parseInt(req.query.limit) : 1000;
+    const results = db.getResults({
+      monitor_id: monitorId,
+      keyword_id: req.query.keyword_id ? parseInt(req.query.keyword_id) : null,
+      platform: req.query.platform || null,
+      sentiment: req.query.sentiment || null,
+      search: req.query.search || null,
+      limit,
+      dedup: true,
+      sort_by: req.query.sort_by || 'newest'
+    });
+
+    const stats = db.getResultStats(monitorId);
+    const currentUser = req.user?.username || 'psdm.muhammadiyah';
+    const profile = db.getUserProfile(currentUser);
+    const userAvatarUrl = profile?.avatar_url || null;
+
+    const pdfBuffer = await buildPDFReport({
+      monitor,
+      results,
+      stats,
+      currentUser,
+      userAvatarUrl
+    });
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const filename = `laporan-pantauan-sosial-media-${todayStr}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error('[Reports] Error generating PDF report:', err);
+    res.status(500).json({ success: false, message: 'Gagal membuat laporan PDF: ' + err.message });
   }
 });
 

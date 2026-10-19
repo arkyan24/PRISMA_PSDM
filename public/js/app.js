@@ -16,7 +16,9 @@ async function api(url, method = 'GET', body = null) {
   const res = await fetch(API_BASE + url, opts);
   
   if (res.status === 401) {
-    window.location.href = '/login';
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
     return { success: false, message: 'Unauthenticated' };
   }
 
@@ -754,9 +756,66 @@ function initTheme() {
   }
 }
 
+// ─── Global Avatar & Profile Synchronization ───
+function applyGlobalAvatar(avatarUrl, username) {
+  const currentUsername = username || localStorage.getItem('syiar_user_name') || 'psdm.muhammadiyah';
+  const initial = currentUsername.charAt(0).toUpperCase();
+
+  const sidebarWraps = document.querySelectorAll('.sidebar-avatar-wrap');
+  sidebarWraps.forEach(wrap => {
+    if (avatarUrl) {
+      wrap.innerHTML = `<img src="${avatarUrl}" alt="Avatar ${currentUsername}" class="sidebar-avatar-img">`;
+    } else {
+      wrap.innerHTML = `<div class="sidebar-avatar-letter">${initial}</div>`;
+    }
+  });
+
+  const profileTitles = document.querySelectorAll('.sidebar-profile-title');
+  profileTitles.forEach(t => {
+    t.textContent = currentUsername;
+  });
+}
+
+async function syncGlobalUserProfile() {
+  if (window.location.pathname === '/login') return;
+
+  try {
+    const cachedAvatar = localStorage.getItem('syiar_user_avatar');
+    const cachedUser = localStorage.getItem('syiar_user_name') || 'psdm.muhammadiyah';
+    applyGlobalAvatar(cachedAvatar, cachedUser);
+  } catch (e) {}
+
+  try {
+    const res = await api('/api/auth/me');
+    if (res && res.authenticated && res.user) {
+      const username = res.user.username || 'psdm.muhammadiyah';
+      const avatarUrl = res.user.avatar_url || null;
+      try {
+        localStorage.setItem('syiar_user_name', username);
+        if (avatarUrl) {
+          localStorage.setItem('syiar_user_avatar', avatarUrl);
+        } else {
+          localStorage.removeItem('syiar_user_avatar');
+        }
+      } catch (err) {}
+      applyGlobalAvatar(avatarUrl, username);
+    }
+  } catch (e) {
+    const cachedAvatar = localStorage.getItem('syiar_user_avatar');
+    const cachedUser = localStorage.getItem('syiar_user_name') || 'psdm.muhammadiyah';
+    applyGlobalAvatar(cachedAvatar, cachedUser);
+  }
+}
+
+window.applyGlobalAvatar = applyGlobalAvatar;
+window.syncGlobalUserProfile = syncGlobalUserProfile;
+
 function initApp() {
-  initSidebarState();
   initTheme();
+  if (window.location.pathname !== '/login') {
+    initSidebarState();
+    syncGlobalUserProfile();
+  }
 }
 
 if (document.readyState === 'loading') {

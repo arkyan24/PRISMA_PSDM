@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SYIAR — Pengaturan akun, password, tema, dan data monitoring.">
+  <meta name="description" content="SYIAR — Pengaturan akun, password, tema, dan otomatisasi monitoring.">
   <title>SYIAR - PUSAT SYIAR DIGITAL MUHAMMADIYAH — Pengaturan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,7 +35,6 @@
 
 <!-- ── Navbar ─────────────────────────────────────── -->
 <nav class="navbar">
-  <!-- YouTube Studio Style Hamburger Button -->
   <button type="button" class="nav-hamburger-btn" onclick="toggleSidebarCollapse()" id="navHamburgerBtn" title="Ciutkan menu" aria-label="Menu navigasi">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -72,12 +71,11 @@
 
 <!-- ── Layout ─────────────────────────────────────── -->
 <div class="layout">
-  <!-- Sidebar (YouTube Studio Style) -->
+  <!-- Sidebar -->
   <aside class="sidebar">
-    <!-- Channel / Brand profile header -->
     <div class="sidebar-brand-profile">
       <div class="sidebar-avatar-wrap">
-        <img src="/images/logo.png" alt="Logo SYIAR" class="sidebar-avatar-img">
+        <div class="sidebar-avatar-letter">P</div>
       </div>
       <div class="sidebar-profile-title">SYIAR</div>
       <div class="sidebar-profile-sub">Pusat Syiar Digital Muhammadiyah</div>
@@ -111,7 +109,6 @@
     </div>
 
     <div class="sidebar-divider"></div>
-
     <div class="sidebar-bottom">
       <div class="sidebar-item" title="Bantuan" style="cursor:pointer">
         <span class="sidebar-item-icon">
@@ -125,129 +122,785 @@
   <!-- Content area -->
   <div class="content">
     <main class="main fade-in settings-page">
+
+      <!-- Page Header -->
       <div class="page-header">
         <div>
           <h1 class="page-title">Pengaturan</h1>
-          <p class="page-title-sub">Kelola akun, keamanan, tampilan, dan data monitoring.</p>
+          <p class="page-title-sub">Kelola preferensi akun, proteksi kredensial, otomatisasi scheduler, dan personalisasi visual</p>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="settings-card-badge active" style="padding: 8px 14px; font-size: 0.78rem;">
+            <span class="status-dot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#22c55e; margin-right:6px;"></span>
+            Sistem Siap & Terproteksi
+          </span>
         </div>
       </div>
 
-      <div class="settings-features">
-        <section class="settings-feature" aria-labelledby="accountTitle">
-          <div>
-            <h2 class="settings-feature-title" id="accountTitle">
-              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
-              Akun
-            </h2>
-            <p class="settings-feature-description">Informasi akun yang sedang digunakan untuk mengakses SYIAR.</p>
+      <!-- ── Summary Stats Row (Exact Environment Match with Monitor Page) ── -->
+      <div class="mon-summary-row fade-in">
+        <!-- 1. Akun Pengguna -->
+        <div class="mon-stat-card mon-stat-standard" id="cardSummaryAccount">
+          <div class="mon-stat-left">
+            <div class="mon-stat-val" id="topAccountVal" style="font-size:1.45rem; text-overflow:ellipsis; overflow:hidden; max-width:180px;">Admin</div>
+            <div class="mon-stat-lbl">Identitas Pengguna</div>
           </div>
-          <div class="settings-feature-body">
-            <div class="account-identity">
-              <span class="account-label">Username</span>
-              <strong id="accountUsername">Memuat akun...</strong>
+          <div class="mon-stat-divider"></div>
+          <div class="mon-stat-right">
+            <div class="mon-stat-icon-wrap" id="topAccountAvatarWrap" title="Pengguna Aktif" style="overflow:hidden; display:flex; align-items:center; justify-content:center; padding:0;">
+              <svg id="topAccountSvgIcon" viewBox="0 0 24 24" fill="none" stroke="#F9896B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <img id="topAccountAvatarImg" src="" alt="Avatar" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:12px;" />
             </div>
           </div>
-        </section>
+        </div>
 
-        <section class="settings-feature" aria-labelledby="passwordTitle">
-          <div>
-            <h2 class="settings-feature-title" id="passwordTitle">
-              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="10" width="18" height="11" rx="2"></rect><path d="M7 10V7a5 5 0 0 1 10 0v3m-5 5v2"></path></svg>
-              Ubah Password
-            </h2>
-            <p class="settings-feature-description">Masukkan password lama untuk memverifikasi identitas sebelum membuat password baru.</p>
+        <!-- 2. Status Keamanan (Ungu Gradient dengan Donut Persentase Oren #F9896B) -->
+        <div class="mon-stat-card mon-stat-active-purple" id="cardSummarySecurity">
+          <div class="mon-stat-left">
+            <div class="mon-stat-val">100%</div>
+            <div class="mon-stat-lbl">Keamanan & Sesi</div>
           </div>
-          <div class="settings-feature-body">
-            <form id="changePasswordForm" class="settings-password-form">
-              <div class="settings-field">
-                <label class="form-label" for="currentPassword">Password lama</label>
-                <input class="form-input" type="password" id="currentPassword" autocomplete="current-password" required>
+          <div class="mon-stat-divider"></div>
+          <div class="mon-stat-right">
+            <div class="mon-stat-ring-wrap" title="Integritas Sesi Maksimal">
+              <svg class="mon-stat-ring-svg" viewBox="0 0 64 64" width="58" height="58">
+                <circle class="mon-stat-ring-bg" cx="32" cy="32" r="25" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="5" />
+                <circle class="mon-stat-ring-prog" cx="32" cy="32" r="25" fill="none" stroke="#F9896B" stroke-width="5"
+                        stroke-dasharray="157.08"
+                        stroke-dashoffset="0" />
+              </svg>
+              <div class="mon-stat-ring-text">100%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Total Aktivitas Terdata -->
+        <div class="mon-stat-card mon-stat-standard" id="cardSummaryResults">
+          <div class="mon-stat-left">
+            <div class="mon-stat-val" id="topTotalResultsVal">—</div>
+            <div class="mon-stat-lbl">Aktivitas Terdata</div>
+          </div>
+          <div class="mon-stat-divider"></div>
+          <div class="mon-stat-right">
+            <div class="mon-stat-icon-wrap" title="Basis Data Pemantauan">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#F9896B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 2 Master Boxes (Full Width Left - Right Layout) ── -->
+      <div class="settings-grid-2col">
+
+        <!-- ══════════════════════════════════════════════════════
+             BOX 1 (KIRI): AKUN, KREDENSIAL & PROTEKSI KEAMANAN
+             ══════════════════════════════════════════════════════ -->
+        <section class="settings-card" aria-labelledby="boxLeftTitle">
+          <!-- Master Header Box Kiri -->
+          <div class="settings-card-header">
+            <div class="settings-card-title-group">
+              <div class="settings-card-icon-wrap purple" title="Akun & Keamanan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
               </div>
-              <div class="settings-field">
-                <label class="form-label" for="newPassword">Password baru</label>
-                <input class="form-input" type="password" id="newPassword" autocomplete="new-password" minlength="8" required>
-                <span class="form-hint">Minimal 8 karakter.</span>
+              <div>
+                <h2 class="settings-card-title" id="boxLeftTitle">Akun & Keamanan</h2>
+                <p class="settings-card-desc">Identitas profil, hak akses pengguna, dan proteksi kata sandi</p>
               </div>
-              <div class="settings-field">
-                <label class="form-label" for="confirmPassword">Ulangi password baru</label>
-                <input class="form-input" type="password" id="confirmPassword" autocomplete="new-password" minlength="8" required>
+            </div>
+            <span class="settings-card-badge active">TERVERIFIKASI & AMAN</span>
+          </div>
+
+          <!-- Section A: Identitas Pengguna -->
+          <div class="settings-inner-section">
+            <div class="settings-inner-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#F9896B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Profil Akun
+            </div>
+            <div class="settings-inner-desc">Informasi pengguna yang sedang aktif di sistem SYIAR</div>
+
+            <div class="user-identity-box">
+              <div class="avatar-upload-wrapper">
+                <div class="user-identity-avatar" id="avatarContainer" onclick="document.getElementById('avatarFileInput').click()" title="Klik untuk mengganti foto profil">
+                  <span id="avatarLetter">P</span>
+                  <img id="avatarImage" src="" alt="Foto Profil" style="display:none;" />
+                  <div class="avatar-hover-overlay">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                      <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    <span>Ubah</span>
+                  </div>
+                </div>
+                <button type="button" class="avatar-badge-btn" onclick="document.getElementById('avatarFileInput').click()" title="Unggah Foto Profil Baru">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                  </svg>
+                </button>
               </div>
-              <button class="btn btn-primary" id="changePasswordButton" type="submit">
-                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg>
+              <div class="user-identity-info">
+                <div class="user-identity-name" id="accountUsername">Memuat akun...</div>
+                <div class="user-identity-role">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#F9896B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                  <span>Administrator PSDM Muhammadiyah</span>
+                </div>
+                <div class="avatar-actions-row">
+                  <input type="file" id="avatarFileInput" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;" onchange="handleAvatarUpload(event)">
+                  <button type="button" class="btn-avatar-action btn-avatar-upload" onclick="document.getElementById('avatarFileInput').click()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Ganti Foto
+                  </button>
+                  <button type="button" class="btn-avatar-action btn-avatar-delete" id="btnDeleteAvatar" onclick="handleAvatarDelete()" style="display:none;" title="Hapus foto kustom dan gunakan inisial">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Hapus
+                  </button>
+                  <span class="avatar-hint-text">JPG, PNG, atau WebP (Maks. 5 MB)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Royal Indigo Stats Banner -->
+            <div class="mon-stats-card active">
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Username</span>
+                <span class="mon-stat-val" id="bannerUsername">psdm.muhammadiyah</span>
+              </div>
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Tingkat Akses</span>
+                <span class="mon-stat-val">Super Admin</span>
+              </div>
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Status Sesi</span>
+                <span class="mon-stat-val">Aktif (Lax Cookie)</span>
+              </div>
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Metode Enkripsi</span>
+                <span class="mon-stat-val">Scrypt + Salt 64b</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section B: Ubah Kata Sandi -->
+          <div class="settings-inner-section">
+            <div class="settings-inner-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#4f46cb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Perbarui Kata Sandi
+            </div>
+            <div class="settings-inner-desc">Ubah password akun secara berkala untuk menjaga proteksi maksimal</div>
+
+            <form id="changePasswordForm">
+              <div class="form-group">
+                <label class="form-label" for="currentPassword">Password Lama <span style="color:var(--negative);">*</span></label>
+                <div class="password-input-wrap">
+                  <input class="form-input" type="password" id="currentPassword" autocomplete="current-password" placeholder="Masukkan password lama" required>
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('currentPassword', this)" title="Lihat password">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="newPassword">Password Baru <span style="color:var(--negative);">*</span></label>
+                <div class="password-input-wrap">
+                  <input class="form-input" type="password" id="newPassword" autocomplete="new-password" minlength="8" placeholder="Minimal 8 karakter" required oninput="evaluatePasswordStrength(this.value)">
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('newPassword', this)" title="Lihat password">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+                <div class="password-strength-container">
+                  <div class="password-strength-track">
+                    <div class="password-strength-bar" id="pwdStrengthBar"></div>
+                  </div>
+                  <div class="password-strength-text" id="pwdStrengthText">Minimal 8 karakter dengan kombinasi huruf dan angka.</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="confirmPassword">Ulangi Password Baru <span style="color:var(--negative);">*</span></label>
+                <div class="password-input-wrap">
+                  <input class="form-input" type="password" id="confirmPassword" autocomplete="new-password" minlength="8" placeholder="Konfirmasi password baru" required>
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('confirmPassword', this)" title="Lihat password">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="changePasswordButton" type="submit" style="width:100%; justify-content:center; padding:12px 18px; margin-top:8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
                 Simpan Password Baru
               </button>
             </form>
           </div>
-        </section>
 
-        <section class="settings-feature" aria-labelledby="forgotPasswordTitle">
-          <div>
-            <h2 class="settings-feature-title" id="forgotPasswordTitle">
-              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3m.1 4h.01"></path></svg>
-              Lupa Password
-            </h2>
-            <p class="settings-feature-description">Informasi pemulihan akun.</p>
-          </div>
-          <div class="settings-feature-body">
-            <p class="settings-recovery-note">Pemulihan otomatis belum tersedia karena akun belum memiliki email pemulihan. Hubungi administrator aplikasi untuk memverifikasi akun dan membantu mengatur ulang password.</p>
-          </div>
-        </section>
-
-        <section class="settings-feature" aria-labelledby="themeTitle">
-          <div>
-            <h2 class="settings-feature-title" id="themeTitle">
-              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-              Tampilan & Tema
-            </h2>
-            <p class="settings-feature-description">Pilih mode tampilan untuk halaman SYIAR ini dan halaman lainnya.</p>
-          </div>
-          <div class="settings-feature-body">
-            <div class="settings-theme-options" role="radiogroup" aria-label="Mode tampilan">
-              <label class="settings-theme-option">
-                <input type="radio" name="themePreference" value="light" onchange="setThemeMode(this.value)">
-                <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg> Terang</span>
-              </label>
-              <label class="settings-theme-option">
-                <input type="radio" name="themePreference" value="dark" onchange="setThemeMode(this.value)">
-                <span><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14A8.5 8.5 0 0 1 10 3.5 8.5 8.5 0 1 0 20.5 14z"></path></svg> Gelap</span>
-              </label>
+          <!-- Section C: Bantuan & Pemulihan Akun -->
+          <div class="settings-inner-section">
+            <div class="settings-inner-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#F9896B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              Bantuan & Kontak Pemulihan
+            </div>
+            <div class="settings-info-box" style="margin-bottom:12px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <div>
+                <strong>Lupa Password?</strong>
+                <p style="margin-top:3px; font-size:0.79rem; color:var(--text-muted); line-height:1.45;">
+                  Hubungi tim Administrator Pusat PSDM Muhammadiyah di Kauman, Yogyakarta atau melalui surel resmi <strong>syiardigital@muhammadiyah.id</strong> untuk proses verifikasi reset.
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section class="settings-feature settings-feature-danger" aria-labelledby="deleteResultsTitle">
-          <div>
-            <h2 class="settings-feature-title" id="deleteResultsTitle">
-              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6"></path></svg>
-              Hapus Semua Data Aktivitas
-            </h2>
-            <p class="settings-feature-description">Hapus seluruh data aktivitas dan riwayat pemindaian yang tersimpan.</p>
+        <!-- ══════════════════════════════════════════════════════
+             BOX 2 (KANAN): PREFERENSI SISTEM, OTOMASI & DATA
+             ══════════════════════════════════════════════════════ -->
+        <section class="settings-card" aria-labelledby="boxRightTitle">
+          <!-- Master Header Box Kanan -->
+          <div class="settings-card-header">
+            <div class="settings-card-title-group">
+              <div class="settings-card-icon-wrap" title="Preferensi Sistem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#F9896B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="settings-card-title" id="boxRightTitle">Preferensi & Otomasi</h2>
+                <p class="settings-card-desc">Personalisasi visual, penjadwalan pemindaian, dan pemeliharaan data</p>
+              </div>
+            </div>
+            <span class="settings-card-badge">PENGATURAN SISTEM</span>
           </div>
-          <div class="settings-feature-body settings-danger-body">
-            <p class="settings-danger-note">Tindakan ini tidak dapat dibatalkan.</p>
-            <button class="btn btn-danger" id="deleteResultsButton" type="button" onclick="clearAllData()">
-              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18m-2 0-.9 14H5.9L5 6m4 0V4h6v2m-5 4v6m4-6v6"></path></svg>
+
+          <!-- Section A: Tampilan & Tema -->
+          <div class="settings-inner-section">
+            <div class="settings-inner-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#F9896B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              Personalisasi Tema Visual
+            </div>
+            <div class="settings-inner-desc">Pilih suasana antarmuka yang paling nyaman digunakan</div>
+
+            <div class="theme-selector-grid" role="radiogroup" aria-label="Pilihan Tema">
+              <!-- Light Theme Choice Card -->
+              <div class="theme-choice-card" id="themeCardLight" onclick="selectThemeMode('light')">
+                <div class="theme-preview-box light-preview">
+                  <div class="tp-sidebar"></div>
+                  <div class="tp-content">
+                    <div class="tp-bar"></div>
+                    <div class="tp-card"></div>
+                  </div>
+                </div>
+                <div class="theme-choice-label">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#F9896B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+                  </svg>
+                  <span>Mode Terang</span>
+                </div>
+                <div class="theme-choice-check" id="checkLight">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+              </div>
+
+              <!-- Dark Theme Choice Card -->
+              <div class="theme-choice-card" id="themeCardDark" onclick="selectThemeMode('dark')">
+                <div class="theme-preview-box dark-preview">
+                  <div class="tp-sidebar"></div>
+                  <div class="tp-content">
+                    <div class="tp-bar"></div>
+                    <div class="tp-card"></div>
+                  </div>
+                </div>
+                <div class="theme-choice-label">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                  </svg>
+                  <span>Mode Gelap</span>
+                </div>
+                <div class="theme-choice-check" id="checkDark">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section B: Otomasi Scheduler Polling -->
+          <div class="settings-inner-section">
+            <div class="settings-inner-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#4f46cb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Jadwal Pemindaian Otomatis
+            </div>
+            <div class="settings-inner-desc">Konfigurasi interval crawling berita dan auto-start server</div>
+
+            <!-- Warm Coral Banner -->
+            <div class="mon-stats-card inactive" style="margin-bottom:16px;">
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Auto-Start</span>
+                <span class="mon-stat-val" id="statAutoStartVal">Nonaktif</span>
+              </div>
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Maks Hasil/Query</span>
+                <span class="mon-stat-val" id="statMaxResultsVal">10 Item</span>
+              </div>
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Default Polling</span>
+                <span class="mon-stat-val">Tiap 3 Jam</span>
+              </div>
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Worker Engine</span>
+                <span class="mon-stat-val">Node-Cron Service</span>
+              </div>
+            </div>
+
+            <form id="schedulerSettingsForm" onsubmit="saveSchedulerSettings(event)">
+              <!-- Toggle Auto-Start -->
+              <div class="settings-form-row">
+                <div class="settings-form-row-info">
+                  <div class="settings-form-row-title">Auto-Start Polling Otomatis</div>
+                  <div class="settings-form-row-desc">Jalankan scheduler segera saat server aplikasi dinyalakan.</div>
+                </div>
+                <label class="mon-switch" title="Aktifkan / Nonaktifkan Auto-Start">
+                  <input type="checkbox" id="settingAutoStart">
+                  <span class="mon-switch-track"><span class="mon-switch-thumb"></span></span>
+                </label>
+              </div>
+
+              <!-- Max Results Select -->
+              <div class="settings-form-row">
+                <div class="settings-form-row-info">
+                  <div class="settings-form-row-title">Kapasitas Hasil per Query</div>
+                  <div class="settings-form-row-desc">Jumlah artikel/isu maksimum yang disimpan per pemindaian topik.</div>
+                </div>
+                <div>
+                  <select class="form-input" id="settingMaxResults" style="min-width:140px; padding:6px 12px;">
+                    <option value="10">10 Hasil</option>
+                    <option value="20">20 Hasil</option>
+                    <option value="30">30 Hasil</option>
+                    <option value="50">50 Hasil</option>
+                  </select>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="saveSchedulerButton" type="submit" style="width:100%; justify-content:center; padding:11px 18px; margin-top:14px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Simpan Pengaturan Scheduler
+              </button>
+            </form>
+          </div>
+
+          <!-- Section C: Zona Bahaya & Hapus Data -->
+          <div class="settings-inner-section" style="border-top-color:rgba(239,68,68,0.25);">
+            <div class="settings-inner-title" style="color:var(--negative);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              Zona Bahaya: Reset Aktivitas
+            </div>
+            <div class="settings-inner-desc">Tindakan pembersihan database yang bersifat permanen</div>
+
+            <div class="settings-info-box danger" style="margin-bottom:14px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <div>
+                <strong>Hapus Semua Rekaman Hasil & Sentimen</strong>
+                <p style="margin-top:3px; font-size:0.79rem; color:var(--text-muted); line-height:1.45;">
+                  Tindakan ini mengosongkan seluruh riwayat temuan isu dari database. Monitor topik dan kata kunci Anda tetap tersimpan.
+                </p>
+              </div>
+            </div>
+
+            <button class="btn btn-danger" id="deleteResultsButton" type="button" onclick="clearAllData()" style="width:100%; justify-content:center; padding:12px 18px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
               Hapus Semua Data Aktivitas
             </button>
           </div>
         </section>
+
       </div>
+
     </main>
   </div>
 </div>
 
 <script src="/js/app.js"></script>
 <script>
-  async function loadAccount() {
-    try {
-      const res = await api('/api/auth/me');
-      document.getElementById('accountUsername').textContent = res.user.username;
-    } catch (e) {
-      document.getElementById('accountUsername').textContent = 'Akun tidak dapat dimuat';
-      showToast('Gagal memuat akun: ' + e.message, 'error');
+  // ─── Password Eye Toggle ───
+  function togglePasswordVisibility(inputId, btnEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    btnEl.innerHTML = isPassword
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+  }
+
+  // ─── Password Strength Meter ───
+  function evaluatePasswordStrength(password) {
+    const bar = document.getElementById('pwdStrengthBar');
+    const text = document.getElementById('pwdStrengthText');
+    if (!bar || !text) return;
+
+    if (!password) {
+      bar.style.width = '0%';
+      bar.style.backgroundColor = 'transparent';
+      text.textContent = 'Minimal 8 karakter dengan kombinasi huruf dan angka.';
+      text.style.color = 'var(--text-muted)';
+      return;
+    }
+
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+    if (score <= 2) {
+      bar.style.width = '33%';
+      bar.style.backgroundColor = '#ef4444';
+      text.textContent = 'Kekuatan: Lemah (tambahkan variasi karakter)';
+      text.style.color = '#ef4444';
+    } else if (score <= 4) {
+      bar.style.width = '66%';
+      bar.style.backgroundColor = '#F9896B';
+      text.textContent = 'Kekuatan: Sedang (bagus, tambahkan simbol/panjang)';
+      text.style.color = '#F9896B';
+    } else {
+      bar.style.width = '100%';
+      bar.style.backgroundColor = '#22c55e';
+      text.textContent = 'Kekuatan: Sangat Kuat & Aman';
+      text.style.color = '#22c55e';
     }
   }
 
+  // ─── Interactive Theme Selection ───
+  function updateThemeUI(theme) {
+    const cardLight = document.getElementById('themeCardLight');
+    const cardDark = document.getElementById('themeCardDark');
+    if (cardLight && cardDark) {
+      if (theme === 'dark') {
+        cardDark.classList.add('active');
+        cardLight.classList.remove('active');
+      } else {
+        cardLight.classList.add('active');
+        cardDark.classList.remove('active');
+      }
+    }
+  }
+
+  function selectThemeMode(mode) {
+    try {
+      localStorage.setItem('syiar_theme', mode);
+      localStorage.setItem('pijar_theme', mode);
+      if (mode === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.classList.add('dark-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.classList.remove('dark-theme');
+      }
+      updateThemeUI(mode);
+      showToast(`Mode ${mode === 'dark' ? 'Gelap' : 'Terang'} berhasil diaktifkan`, 'info');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // ─── Avatar & Account Logic ───
+  let currentAvatarUrl = null;
+
+  function updateAvatarDisplay(avatarUrl, username) {
+    currentAvatarUrl = avatarUrl;
+    const initial = (username || 'P').charAt(0).toUpperCase();
+    const avatarImg = document.getElementById('avatarImage');
+    const avatarLetter = document.getElementById('avatarLetter');
+    const btnDelete = document.getElementById('btnDeleteAvatar');
+    
+    // Top summary card elements
+    const topSvg = document.getElementById('topAccountSvgIcon');
+    const topImg = document.getElementById('topAccountAvatarImg');
+
+    if (avatarUrl) {
+      if (avatarImg) {
+        avatarImg.src = avatarUrl;
+        avatarImg.style.display = 'block';
+      }
+      if (avatarLetter) avatarLetter.style.display = 'none';
+      if (btnDelete) btnDelete.style.display = 'inline-flex';
+
+      if (topImg && topSvg) {
+        topImg.src = avatarUrl;
+        topImg.style.display = 'block';
+        topSvg.style.display = 'none';
+      }
+    } else {
+      if (avatarImg) {
+        avatarImg.src = '';
+        avatarImg.style.display = 'none';
+      }
+      if (avatarLetter) {
+        avatarLetter.textContent = initial;
+        avatarLetter.style.display = 'block';
+      }
+      if (btnDelete) btnDelete.style.display = 'none';
+
+      if (topImg && topSvg) {
+        topImg.src = '';
+        topImg.style.display = 'none';
+        topSvg.style.display = 'block';
+      }
+    }
+
+    if (window.applyGlobalAvatar) {
+      window.applyGlobalAvatar(avatarUrl, username);
+    }
+  }
+
+  // ─── Load Account Information ───
+  async function loadAccount() {
+    try {
+      const res = await api('/api/auth/me');
+      const username = res.user?.username || 'psdm.muhammadiyah';
+      const avatarUrl = res.user?.avatar_url || null;
+      document.getElementById('accountUsername').textContent = username;
+      document.getElementById('bannerUsername').textContent = username;
+      document.getElementById('topAccountVal').textContent = username;
+      
+      updateAvatarDisplay(avatarUrl, username);
+    } catch (e) {
+      document.getElementById('accountUsername').textContent = 'psdm.muhammadiyah';
+      document.getElementById('bannerUsername').textContent = 'psdm.muhammadiyah';
+      document.getElementById('topAccountVal').textContent = 'Admin';
+      updateAvatarDisplay(null, 'psdm.muhammadiyah');
+    }
+  }
+
+  // ─── Handle Avatar Upload ───
+  async function handleAvatarUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.match(/^image\/(png|jpe?g|webp|gif)$/i)) {
+      showToast('Format file tidak didukung! Gunakan format PNG, JPG, JPEG, atau WebP.', 'error');
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Ukuran foto terlalu besar! Maksimal 5 MB.', 'error');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const rawData = e.target.result;
+      const img = new Image();
+      img.onload = async function() {
+        const maxDim = 512;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const pngBase64 = canvas.toDataURL('image/png', 0.95);
+
+        const username = document.getElementById('accountUsername').textContent || 'Admin';
+        updateAvatarDisplay(pngBase64, username);
+
+        try {
+          showToast('Menyimpan foto profil...', 'info');
+          const res = await fetch('/api/auth/avatar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ avatar: pngBase64 })
+          });
+          const data = await res.json();
+          if (data.success) {
+            updateAvatarDisplay(data.avatar_url, username);
+            try {
+              localStorage.setItem('syiar_user_avatar', data.avatar_url);
+              localStorage.setItem('syiar_user_name', username);
+            } catch (err) {}
+            showToast('Foto profil kustom berhasil disimpan!', 'success');
+          } else {
+            showToast(data.message || 'Gagal menyimpan foto profil', 'error');
+            loadAccount();
+          }
+        } catch (err) {
+          showToast('Koneksi gagal saat mengunggah foto: ' + err.message, 'error');
+          loadAccount();
+        } finally {
+          event.target.value = '';
+        }
+      };
+      img.src = rawData;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ─── Handle Avatar Delete ───
+  async function handleAvatarDelete() {
+    if (!confirm('Apakah Anda yakin ingin menghapus foto profil kustom dan kembali ke inisial default?')) return;
+
+    try {
+      showToast('Menghapus foto profil...', 'info');
+      const res = await fetch('/api/auth/avatar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ avatar: null })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const username = document.getElementById('accountUsername').textContent || 'Admin';
+        updateAvatarDisplay(null, username);
+        try {
+          localStorage.removeItem('syiar_user_avatar');
+        } catch (err) {}
+        showToast('Foto profil berhasil dihapus, kembali ke inisial default.', 'success');
+      } else {
+        showToast(data.message || 'Gagal menghapus foto profil', 'error');
+      }
+    } catch (err) {
+      showToast('Koneksi gagal: ' + err.message, 'error');
+    }
+  }
+
+  // ─── Load Summary Stats for Top Row ───
+  async function loadSummaryStats() {
+    try {
+      const res = await api('/api/results/stats');
+      if (res.success && res.data) {
+        const total = res.data.total || 0;
+        document.getElementById('topTotalResultsVal').textContent = Number(total).toLocaleString('id-ID');
+      }
+    } catch (e) {
+      document.getElementById('topTotalResultsVal').textContent = '0';
+    }
+  }
+
+  // ─── Load & Save Scheduler Settings ───
+  async function loadSystemSettings() {
+    try {
+      const res = await api('/api/settings');
+      if (res.success && res.data) {
+        const s = res.data;
+        const isAutoStart = s.auto_start === '1' || s.auto_start === 1 || s.auto_start === true;
+        const autoStartEl = document.getElementById('settingAutoStart');
+        if (autoStartEl) autoStartEl.checked = isAutoStart;
+
+        const maxResults = s.max_results_per_query || '10';
+        const maxResultsEl = document.getElementById('settingMaxResults');
+        if (maxResultsEl) maxResultsEl.value = maxResults;
+
+        // Update Stat Banner
+        document.getElementById('statAutoStartVal').textContent = isAutoStart ? 'Aktif' : 'Nonaktif';
+        document.getElementById('statMaxResultsVal').textContent = `${maxResults} Item`;
+      }
+    } catch (e) {
+      console.error('Error loading settings:', e);
+    }
+  }
+
+  async function saveSchedulerSettings(event) {
+    event.preventDefault();
+    const btn = document.getElementById('saveSchedulerButton');
+    const autoStart = document.getElementById('settingAutoStart').checked ? '1' : '0';
+    const maxResults = document.getElementById('settingMaxResults').value;
+
+    btn.disabled = true;
+    try {
+      const res = await api('/api/settings', 'POST', {
+        settings: {
+          auto_start: autoStart,
+          max_results_per_query: maxResults
+        }
+      });
+      showToast(res.message || 'Pengaturan scheduler berhasil disimpan.', 'success');
+      document.getElementById('statAutoStartVal').textContent = autoStart === '1' ? 'Aktif' : 'Nonaktif';
+      document.getElementById('statMaxResultsVal').textContent = `${maxResults} Item`;
+    } catch (e) {
+      showToast('Gagal menyimpan: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ─── Change Password ───
   async function changePassword(event) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -268,8 +921,9 @@
     button.disabled = true;
     try {
       const res = await api('/api/auth/change-password', 'POST', { currentPassword, newPassword });
-      showToast(res.message, 'success');
+      showToast(res.message || 'Password berhasil diperbarui.', 'success');
       form.reset();
+      evaluatePasswordStrength('');
     } catch (e) {
       showToast('Gagal mengubah password: ' + e.message, 'error');
     } finally {
@@ -277,8 +931,9 @@
     }
   }
 
+  // ─── Clear All Results ───
   async function clearAllData() {
-    if (!confirm('Hapus semua data aktivitas dan riwayat pemindaian? Tindakan ini tidak dapat dibatalkan.')) {
+    if (!confirm('Peringatan: Hapus semua data aktivitas pemindaian dan riwayat sentimen? Tindakan ini tidak dapat dibatalkan.')) {
       return;
     }
 
@@ -286,7 +941,8 @@
     button.disabled = true;
     try {
       const res = await api('/api/results', 'DELETE');
-      showToast(res.message || 'Semua data aktivitas berhasil dihapus.', 'success');
+      showToast(res.message || 'Semua data aktivitas berhasil dibersihkan.', 'success');
+      loadSummaryStats();
     } catch (e) {
       showToast('Gagal menghapus: ' + e.message, 'error');
     } finally {
@@ -294,16 +950,19 @@
     }
   }
 
+  // ─── Page Initialization ───
   document.addEventListener('DOMContentLoaded', () => {
     loadMonitorStatus();
     loadAccount();
+    loadSummaryStats();
+    loadSystemSettings();
+
     document.getElementById('changePasswordForm').addEventListener('submit', changePassword);
 
     const savedTheme = localStorage.getItem('syiar_theme') || localStorage.getItem('pijar_theme');
     const selectedTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    const themeOption = document.querySelector(`input[name="themePreference"][value="${selectedTheme}"]`);
-    if (themeOption) themeOption.checked = true;
+    updateThemeUI(selectedTheme);
   });
 </script>
 </body>
-</html>
+</html>
