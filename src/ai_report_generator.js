@@ -78,7 +78,8 @@ async function generateAINarrative(item, context = {}) {
   const keyword = cleanText(item.keyword_text || context.keyword || 'Muhammadiyah');
 
   // Coba integrasi eksternal jika microservice AI open-source (FastAPI / Ollama) tersedia
-  const aiServiceUrl = process.env.AI_SERVICE_URL || process.env.SENTIMENT_API_URL || 'http://127.0.0.1:8000';
+  const rawAiUrl = process.env.AI_SERVICE_URL || process.env.SENTIMENT_API_URL || 'http://127.0.0.1:8000';
+  const aiServiceUrl = rawAiUrl.replace(/\/+$/, '');
   try {
     const response = await axios.post(`${aiServiceUrl}/narrative`, {
       title,

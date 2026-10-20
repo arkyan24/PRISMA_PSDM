@@ -10,7 +10,8 @@ const axios = require('axios');
 
 // ─── Environment Configuration ────────────────────────────────
 function getSentimentApiUrl() {
-  return process.env.SENTIMENT_API_URL || 'http://127.0.0.1:8000';
+  const rawUrl = process.env.SENTIMENT_API_URL || 'http://127.0.0.1:8000';
+  return rawUrl.replace(/\/+$/, '');
 }
 function getSentimentTimeout() {
   return parseInt(process.env.SENTIMENT_TIMEOUT_MS || '5000', 10);

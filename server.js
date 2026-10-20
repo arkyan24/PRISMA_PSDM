@@ -865,16 +865,21 @@ app.get('/:page.html', pageAuthGuard, (req, res) => {
 });
 
 // ─── Start Server ─────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n══════════════════════════════════════════════════`);
-  console.log(`  🔍 Issue Monitor Server`);
-  console.log(`  🌐 http://localhost:${PORT}`);
-  console.log(`══════════════════════════════════════════════════\n`);
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n══════════════════════════════════════════════════`);
+    console.log(`  🔍 Issue Monitor Server`);
+    console.log(`  🌐 http://localhost:${PORT}`);
+    console.log(`══════════════════════════════════════════════════\n`);
 
-  // Auto-start monitoring if configured
-  const autoStart = db.getSetting('auto_start');
-  if (autoStart === '1') {
-    console.log('[Server] Auto-starting monitoring...');
-    scheduler.start();
-  }
-});
+    // Auto-start monitoring if configured
+    const autoStart = db.getSetting('auto_start');
+    if (autoStart === '1') {
+      console.log('[Server] Auto-starting monitoring...');
+      scheduler.start();
+    }
+  });
+}
+
+module.exports = app;
+
