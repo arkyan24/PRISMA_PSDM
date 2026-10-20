@@ -286,6 +286,7 @@
       try {
         const res = await fetch('/kjkaaf94nf/api/login', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: u, password: p })
         });
@@ -293,9 +294,7 @@
         const data = await res.json();
         if (res.ok && data.success) {
           btnText.textContent = 'Akses Diterima! Mengalihkan...';
-          setTimeout(() => {
-            window.location.href = '/kjkaaf94nf/';
-          }, 500);
+          window.location.replace('/kjkaaf94nf/');
         } else {
           alertMsg.textContent = data.message || 'Username atau kata sandi master salah.';
           alertBox.style.display = 'block';
@@ -303,8 +302,8 @@
           btnText.textContent = 'Masuk ke Konsol Pemilik';
         }
       } catch (err) {
-        console.error(err);
-        alertMsg.textContent = 'Koneksi ke server gagal.';
+        console.error('[OwnerLogin] fetch error:', err);
+        alertMsg.textContent = 'Koneksi ke server gagal: ' + (err.message || err);
         alertBox.style.display = 'block';
         btn.disabled = false;
         btnText.textContent = 'Masuk ke Konsol Pemilik';

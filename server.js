@@ -40,13 +40,11 @@ function getAuthToken(req) {
 }
 
 function getOwnerToken(req) {
-  const cookieToken = getCookie(req, 'prisma_owner_token') || getCookie(req, 'syiar_owner_token');
-  if (cookieToken) return cookieToken;
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return authHeader.substring(7);
-  }
-  return null;
+  // Owner token hanya dibaca dari cookie khusus owner.
+  // JANGAN fall-through ke Authorization header karena header tersebut
+  // bisa berisi user token, yang akan menyebabkan bug: owner baru bisa
+  // login ketika ada user yang sedang login di tab lain.
+  return getCookie(req, 'prisma_owner_token') || getCookie(req, 'syiar_owner_token') || null;
 }
 
 function pageAuthGuard(req, res, next) {
