@@ -1,4 +1,5 @@
-# ─── Python Virtual Environment & Build Caches ───
+# ─── Service Python & Dependensi PyTorch (Diabaikan dari Vercel) ───
+sentiment_service/
 venv/
 .venv/
 env/

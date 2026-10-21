@@ -56,7 +56,7 @@ python -m venv .venv
 # (atau source .venv/bin/activate untuk Linux/macOS)
 
 # 4. Install dependensi
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
 # 5. Jalankan Service FastAPI
 python app.py
