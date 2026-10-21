@@ -1,5 +1,4 @@
-# ─── Service Python & Dependensi PyTorch (Diabaikan dari Vercel) ───
-sentiment_service/
+# ─── Python Virtual Environment & Build Caches ───
 venv/
 .venv/
 env/
@@ -24,4 +23,3 @@ tests/
 .git/
 .github/
 benchmark_results.json
-

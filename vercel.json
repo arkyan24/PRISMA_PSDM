@@ -1,9 +1,29 @@
 {
-  "version": 2,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "express",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "sentiment_service",
+          "format": "url",
+          "env": "SENTIMENT_API_URL"
+        }
+      ]
+    },
+    "sentiment_service": {
+      "root": "sentiment_service",
+      "framework": "fastapi"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/server.js"
+      "destination": {
+        "service": "app"
+      }
     }
   ]
 }
