@@ -68,11 +68,13 @@ function getAuthToken(req) {
 }
 
 function getOwnerToken(req) {
-  // Owner token hanya dibaca dari cookie khusus owner.
-  // JANGAN fall-through ke Authorization header karena header tersebut
-  // bisa berisi user token, yang akan menyebabkan bug: owner baru bisa
-  // login ketika ada user yang sedang login di tab lain.
-  return getCookie(req, 'prisma_owner_token') || getCookie(req, 'syiar_owner_token') || null;
+  // Owner token dibaca dari cookie khusus owner atau header x-owner-token
+  return (
+    getCookie(req, 'prisma_owner_token') ||
+    getCookie(req, 'syiar_owner_token') ||
+    req.headers['x-owner-token'] ||
+    null
+  );
 }
 
 function pageAuthGuard(req, res, next) {
@@ -144,10 +146,12 @@ app.post('/api/auth/login', (req, res) => {
     }
 
     const session = authVault.createUserSession(cleanUsername);
+    const isSecure = Boolean(process.env.VERCEL || req.secure || req.headers['x-forwarded-proto'] === 'https');
+    const secureFlag = isSecure ? '; Secure' : '';
     res.setHeader('Set-Cookie', [
-      `prisma_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
-      `syiar_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
-      `pijar_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`
+      `prisma_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}${secureFlag}`,
+      `syiar_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}${secureFlag}`,
+      `pijar_auth_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}${secureFlag}`
     ]);
     res.json({
       success: true,
@@ -189,10 +193,12 @@ app.post('/api/auth/first-login-change-password', (req, res) => {
     }
 
     authVault.changeUserPasswordVault(username, '(Password Sementara Awal)', new_password, temp_token);
+    const isSecure = Boolean(process.env.VERCEL || req.secure || req.headers['x-forwarded-proto'] === 'https');
+    const secureFlag = isSecure ? '; Secure' : '';
     res.setHeader('Set-Cookie', [
-      `prisma_auth_token=${temp_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
-      `syiar_auth_token=${temp_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
-      `pijar_auth_token=${temp_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`
+      `prisma_auth_token=${temp_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}${secureFlag}`,
+      `syiar_auth_token=${temp_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}${secureFlag}`,
+      `pijar_auth_token=${temp_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}${secureFlag}`
     ]);
     res.json({
       success: true,
@@ -809,9 +815,11 @@ app.post('/kjkaaf94nf/api/login', (req, res) => {
       return res.status(401).json({ success: false, message: 'Kredensial Owner tidak valid.' });
     }
     const session = authVault.createOwnerSession(username);
+    const isSecure = Boolean(process.env.VERCEL || req.secure || req.headers['x-forwarded-proto'] === 'https');
+    const secureFlag = isSecure ? '; Secure' : '';
     res.setHeader('Set-Cookie', [
-      `prisma_owner_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`,
-      `syiar_owner_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}`
+      `prisma_owner_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}${secureFlag}`,
+      `syiar_owner_token=${session.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 3600}${secureFlag}`
     ]);
     res.json({ success: true, message: 'Login Owner berhasil', token: session.token });
   } catch (e) {

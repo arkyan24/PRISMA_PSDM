@@ -28,6 +28,53 @@ function hashPassword(password, salt) {
   return crypto.scryptSync(password, salt, 64).toString('hex');
 }
 
+const JWT_SECRET = process.env.SESSION_SECRET || 'prisma_psdm_muhammadiyah_vault_secret_key_2026';
+
+function signToken(payload) {
+  const dataStr = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = crypto.createHmac('sha256', JWT_SECRET).update(dataStr).digest('base64url');
+  return `${dataStr}.${sig}`;
+}
+
+function verifyToken(tokenString) {
+  if (!tokenString || typeof tokenString !== 'string' || !tokenString.includes('.')) {
+    return null;
+  }
+  const parts = tokenString.split('.');
+  if (parts.length !== 2) return null;
+  const [dataStr, sig] = parts;
+  const expectedSig = crypto.createHmac('sha256', JWT_SECRET).update(dataStr).digest('base64url');
+  if (sig.length !== expectedSig.length) return null;
+  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) return null;
+
+  try {
+    const payload = JSON.parse(Buffer.from(dataStr, 'base64url').toString('utf-8'));
+    if (!payload || !payload.exp || Date.now() > payload.exp) {
+      return null;
+    }
+    return payload;
+  } catch (e) {
+    return null;
+  }
+}
+
+function copySeedVault() {
+  const seedPath = path.join(__dirname, '..', 'data', 'auth_vault.json');
+  if (fs.existsSync(seedPath)) {
+    try {
+      const raw = fs.readFileSync(seedPath, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (process.env.VERCEL) {
+        try {
+          fs.writeFileSync(VAULT_FILE, raw, 'utf-8');
+        } catch (e) {}
+      }
+      return parsed;
+    } catch (e) {}
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_VAULT));
+}
+
 function loadVault() {
   ensureDir();
   if (!_vault) {
@@ -39,11 +86,11 @@ function loadVault() {
           if (!(key in _vault)) _vault[key] = DEFAULT_VAULT[key];
         }
       } catch (err) {
-        console.error('[Vault] Corrupt auth_vault.json, reinitializing:', err.message);
-        _vault = JSON.parse(JSON.stringify(DEFAULT_VAULT));
+        console.error('[Vault] Corrupt auth_vault.json, reinitializing from seed:', err.message);
+        _vault = copySeedVault();
       }
     } else {
-      _vault = JSON.parse(JSON.stringify(DEFAULT_VAULT));
+      _vault = copySeedVault();
     }
   }
   return _vault;
@@ -52,7 +99,11 @@ function loadVault() {
 function saveVault() {
   ensureDir();
   if (_vault) {
-    fs.writeFileSync(VAULT_FILE, JSON.stringify(_vault, null, 2), 'utf-8');
+    try {
+      fs.writeFileSync(VAULT_FILE, JSON.stringify(_vault, null, 2), 'utf-8');
+    } catch (e) {
+      console.warn('[Vault] Unable to write vault file:', e.message);
+    }
   }
 }
 
@@ -128,14 +179,23 @@ function verifyOwner(username, password) {
 
 function createOwnerSession(username, durationDays = 7) {
   const vault = loadVault();
-  const token = 'own_' + crypto.randomBytes(32).toString('hex');
   const now = new Date();
   const expiresAt = new Date(now.getTime() + durationDays * 24 * 3600 * 1000).toISOString();
+  const expTimestamp = now.getTime() + durationDays * 24 * 3600 * 1000;
+
+  const payload = {
+    sub: String(username).trim(),
+    role: 'owner',
+    created_at: now.toISOString(),
+    expires_at: expiresAt,
+    exp: expTimestamp
+  };
+  const token = 'own_' + signToken(payload);
 
   vault.sessions = (vault.sessions || []).filter(s => s.expires_at > now.toISOString());
   vault.sessions.push({
     token,
-    username,
+    username: payload.sub,
     role: 'owner',
     created_at: now.toISOString(),
     expires_at: expiresAt
@@ -148,6 +208,25 @@ function validateOwnerSession(token) {
   if (!token) return null;
   const vault = loadVault();
   const now = new Date().toISOString();
+
+  // 1. Validasi via HMAC signature
+  if (token.startsWith('own_') && token.includes('.')) {
+    const rawSigned = token.slice(4);
+    const verified = verifyToken(rawSigned);
+    if (verified && verified.role === 'owner') {
+      if (vault.owner && vault.owner.username === verified.sub) {
+        return {
+          token,
+          username: verified.sub,
+          role: 'owner',
+          created_at: verified.created_at,
+          expires_at: verified.expires_at
+        };
+      }
+    }
+  }
+
+  // 2. Fallback pencarian in-memory / file JSON
   const session = (vault.sessions || []).find(s => s.token === token && s.role === 'owner' && s.expires_at > now);
   return session || null;
 }
@@ -214,14 +293,24 @@ function verifyUserLogin(username, password) {
 
 function createUserSession(username, durationDays = 7) {
   const vault = loadVault();
-  const token = 'usr_' + crypto.randomBytes(32).toString('hex');
+  const cleanUsername = String(username).trim();
   const now = new Date();
   const expiresAt = new Date(now.getTime() + durationDays * 24 * 3600 * 1000).toISOString();
+  const expTimestamp = now.getTime() + durationDays * 24 * 3600 * 1000;
+
+  const payload = {
+    sub: cleanUsername,
+    role: 'user',
+    created_at: now.toISOString(),
+    expires_at: expiresAt,
+    exp: expTimestamp
+  };
+  const token = 'usr_' + signToken(payload);
 
   vault.sessions = (vault.sessions || []).filter(s => s.expires_at > now.toISOString());
   vault.sessions.push({
     token,
-    username,
+    username: cleanUsername,
     role: 'user',
     created_at: now.toISOString(),
     expires_at: expiresAt
@@ -234,11 +323,39 @@ function validateUserSession(token) {
   if (!token) return null;
   const vault = loadVault();
   const now = new Date().toISOString();
-  const session = (vault.sessions || []).find(s => s.token === token && s.role === 'user' && s.expires_at > now);
+
+  let session = null;
+
+  // 1. Validasi via HMAC signature (Stateless & cross-lambda di Vercel)
+  if (token.startsWith('usr_') && token.includes('.')) {
+    const rawSigned = token.slice(4);
+    const verified = verifyToken(rawSigned);
+    if (verified && verified.role === 'user' && verified.sub) {
+      session = {
+        token,
+        username: verified.sub,
+        role: 'user',
+        created_at: verified.created_at,
+        expires_at: verified.expires_at
+      };
+    }
+  }
+
+  // 2. Fallback pencarian in-memory / file JSON jika token lama
+  if (!session) {
+    session = (vault.sessions || []).find(s => s.token === token && s.role === 'user' && s.expires_at > now);
+  }
+
   if (!session) return null;
 
-  // Verify that the user is still active and subscription valid
-  const user = vault.users.find(u => u.username === session.username);
+  // Verifikasi apakah user masih ada dan aktif
+  let user = vault.users.find(u => u.username === session.username);
+  if (!user && session.username === 'psdm.muhammadiyah') {
+    // Pastikan akun default selalu ada
+    initAuthVault();
+    user = vault.users.find(u => u.username === session.username);
+  }
+
   if (!user || user.status !== 'active') return null;
   if (user.subscription_expires_at && Date.now() > new Date(user.subscription_expires_at).getTime()) {
     return null;

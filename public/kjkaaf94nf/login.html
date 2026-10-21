@@ -293,6 +293,12 @@
 
         const data = await res.json();
         if (res.ok && data.success) {
+          if (data.token) {
+            try {
+              localStorage.setItem('prisma_owner_token', data.token);
+              sessionStorage.setItem('prisma_owner_token', data.token);
+            } catch (e) {}
+          }
           btnText.textContent = 'Akses Diterima! Mengalihkan...';
           window.location.replace('/kjkaaf94nf/');
         } else {

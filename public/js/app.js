@@ -16,9 +16,15 @@ function isPublicPage() {
 async function api(url, method = 'GET', body = null) {
   let m = typeof method === 'string' ? method : (method && method.method) || 'GET';
   let b = typeof method === 'object' && method !== null && method.body !== undefined ? method.body : body;
+  const token = localStorage.getItem('prisma_auth_token') || localStorage.getItem('syiar_auth_token') || sessionStorage.getItem('prisma_auth_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   const opts = {
     method: m,
-    headers: { 'Content-Type': 'application/json' }
+    headers,
+    credentials: 'include'
   };
   if (b) opts.body = typeof b === 'string' ? b : JSON.stringify(b);
 
@@ -26,6 +32,11 @@ async function api(url, method = 'GET', body = null) {
   
   if (res.status === 401) {
     if (!isPublicPage()) {
+      try {
+        localStorage.removeItem('prisma_auth_token');
+        localStorage.removeItem('syiar_auth_token');
+        sessionStorage.removeItem('prisma_auth_token');
+      } catch (e) {}
       window.location.href = '/login';
     }
     return { success: false, message: 'Unauthenticated' };
@@ -42,7 +53,10 @@ async function api(url, method = 'GET', body = null) {
 // ─── Authentication ───────────────────────────────────
 async function logout() {
   try {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    localStorage.removeItem('prisma_auth_token');
+    localStorage.removeItem('syiar_auth_token');
+    sessionStorage.removeItem('prisma_auth_token');
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
   } catch (e) {
     console.error('Logout error:', e);
   } finally {

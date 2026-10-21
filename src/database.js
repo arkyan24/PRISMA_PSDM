@@ -67,18 +67,34 @@ function loadTenant(username) {
         _tenantDbs[tenant] = JSON.parse(JSON.stringify(DEFAULT_DB));
       }
     } else {
-      // If primary tenant psdm.muhammadiyah, check if legacy database.json exists
-      if (tenant === 'psdm.muhammadiyah' && fs.existsSync(DB_FILE)) {
+      // Check if project repository has seed tenant file
+      const safeName = (tenant || 'psdm.muhammadiyah').replace(/[^a-zA-Z0-9_.-]/g, '_');
+      const seedTenant = path.join(__dirname, '..', 'data', 'tenants', `${safeName}.json`);
+      const seedLegacy = path.join(__dirname, '..', 'data', 'database.json');
+
+      if (fs.existsSync(seedTenant)) {
         try {
-          const raw = fs.readFileSync(DB_FILE, 'utf-8');
+          const raw = fs.readFileSync(seedTenant, 'utf-8');
           _tenantDbs[tenant] = JSON.parse(raw);
-          fs.writeFileSync(tenantFile, JSON.stringify(_tenantDbs[tenant], null, 2), 'utf-8');
+          if (process.env.VERCEL) {
+            try { fs.writeFileSync(tenantFile, raw, 'utf-8'); } catch (e) {}
+          }
+        } catch (e) {
+          _tenantDbs[tenant] = JSON.parse(JSON.stringify(DEFAULT_DB));
+        }
+      } else if (tenant === 'psdm.muhammadiyah' && fs.existsSync(seedLegacy)) {
+        try {
+          const raw = fs.readFileSync(seedLegacy, 'utf-8');
+          _tenantDbs[tenant] = JSON.parse(raw);
+          if (process.env.VERCEL) {
+            try { fs.writeFileSync(tenantFile, raw, 'utf-8'); } catch (e) {}
+          }
         } catch (e) {
           _tenantDbs[tenant] = JSON.parse(JSON.stringify(DEFAULT_DB));
         }
       } else {
         _tenantDbs[tenant] = JSON.parse(JSON.stringify(DEFAULT_DB));
-        fs.writeFileSync(tenantFile, JSON.stringify(_tenantDbs[tenant], null, 2), 'utf-8');
+        try { fs.writeFileSync(tenantFile, JSON.stringify(_tenantDbs[tenant], null, 2), 'utf-8'); } catch (e) {}
       }
     }
 

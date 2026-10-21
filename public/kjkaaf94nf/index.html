@@ -1532,7 +1532,14 @@
       if (isManualRefresh && refreshIcon) refreshIcon.classList.add('spin');
 
       try {
-        const res = await fetch('/kjkaaf94nf/api/dashboard');
+        const ownerTok = localStorage.getItem('prisma_owner_token') || sessionStorage.getItem('prisma_owner_token') || '';
+        const fetchHeaders = {};
+        if (ownerTok) fetchHeaders['x-owner-token'] = ownerTok;
+
+        const res = await fetch('/kjkaaf94nf/api/dashboard', {
+          credentials: 'include',
+          headers: fetchHeaders
+        });
         if (res.status === 401) {
           window.location.href = '/kjkaaf94nf/login';
           return;

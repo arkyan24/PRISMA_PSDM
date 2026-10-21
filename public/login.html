@@ -1279,6 +1279,13 @@
               return;
             }
             // SUCCESS
+            if (data.token) {
+              try {
+                localStorage.setItem('prisma_auth_token', data.token);
+                localStorage.setItem('syiar_auth_token', data.token);
+                sessionStorage.setItem('prisma_auth_token', data.token);
+              } catch (e) {}
+            }
             setMascotState('success');
             txtBtnLogin.textContent = 'Berhasil!';
             setLoading(false);
