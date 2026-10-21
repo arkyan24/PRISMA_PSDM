@@ -114,12 +114,12 @@
     <div class="sidebar-divider"></div>
 
     <div class="sidebar-bottom">
-      <div class="sidebar-item" title="Bantuan" style="cursor:pointer">
+      <a href="/help" class="sidebar-item" title="Bantuan & Panduan Setup NLP">
         <span class="sidebar-item-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         </span>
         <span class="sidebar-item-text">Bantuan</span>
-      </div>
+      </a>
     </div>
   </aside>
 
@@ -224,12 +224,42 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
               Refresh
             </button>
+
+            <!-- Tombol Tinjau Temuan (Disamping Refresh) -->
+            <button type="button" class="btn btn-outline" id="btnToggleReviewMode" onclick="toggleReviewMode()" style="padding: 9px 18px; border-radius:12px; height:40px; gap:8px; font-weight:600;" title="Buka mode centang untuk memilih dan menghapus temuan secara massal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+                <polyline points="9 11 12 14 22 4"></polyline>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+              <span>Tinjau Temuan</span>
+            </button>
           </div>
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-muted); padding-top:2px;">
           <span>Sistem analitik cerdas didukung IndoBERT Transformer NLP</span>
           <span>Menampilkan <strong id="resultCountDisplay" style="color:var(--text); font-weight:700;">0</strong> aktivitas</span>
+        </div>
+      </div>
+
+      <!-- ── Review Action Bar (Tinjau Temuan: Checklist & Hapus Massal) ── -->
+      <div id="reviewActionBar" class="review-action-bar" style="display:none;">
+        <div class="review-action-left">
+          <label class="review-select-all-label">
+            <input type="checkbox" id="selectAllResults" onchange="toggleSelectAllResults(this.checked)" class="review-checkbox">
+            <span>Pilih Semua (<span id="totalVisibleCount">0</span>)</span>
+          </label>
+          <span class="review-divider-dot">•</span>
+          <span class="review-selected-counter" id="selectedCountText">0 dipilih</span>
+        </div>
+        <div class="review-action-right">
+          <button type="button" class="btn btn-danger btn-sm" id="btnDeleteSelected" onclick="confirmDeleteSelected()" disabled style="background:#ef4444; border-color:#ef4444; color:#fff; display:inline-flex; align-items:center; gap:6px; font-weight:600; padding:8px 16px; border-radius:8px; transition:all 0.2s ease;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span id="btnDeleteSelectedLabel">Hapus Terpilih</span>
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="toggleReviewMode(false)" style="padding:8px 14px; border-radius:8px;">
+            Selesai Tinjau
+          </button>
         </div>
       </div>
 
@@ -342,6 +372,13 @@
 
       document.getElementById('resultCountDisplay').textContent =
         container.querySelectorAll('.result-card').length;
+
+      if (typeof isReviewModeActive !== 'undefined' && isReviewModeActive) {
+        container.classList.add('review-mode-active');
+      }
+      if (typeof updateSelectedCountUI === 'function') {
+        updateSelectedCountUI();
+      }
 
     } catch (e) {
       showToast(e.message, 'error');

@@ -14,11 +14,13 @@ function isPublicPage() {
 
 // ─── API Helper ───────────────────────────────────────
 async function api(url, method = 'GET', body = null) {
+  let m = typeof method === 'string' ? method : (method && method.method) || 'GET';
+  let b = typeof method === 'object' && method !== null && method.body !== undefined ? method.body : body;
   const opts = {
-    method,
+    method: m,
     headers: { 'Content-Type': 'application/json' }
   };
-  if (body) opts.body = JSON.stringify(body);
+  if (b) opts.body = typeof b === 'string' ? b : JSON.stringify(b);
 
   const res = await fetch(API_BASE + url, opts);
   
@@ -474,24 +476,26 @@ async function loadRecentResults() {
 
 // ─── Render Result Card ───────────────────────────────
 function renderResultCard(item) {
-  const platformNames = {
-    facebook: 'Facebook',
-    twitter: 'Twitter / X',
-    instagram: 'Instagram',
-    website: 'Website'
+  const platform = (item.platform || 'website').toLowerCase();
+
+  const platformLabels = {
+    facebook: 'FACEBOOK',
+    twitter: 'TWITTER / X',
+    instagram: 'INSTAGRAM',
+    website: 'WEBSITE'
   };
 
   const platformIcons = {
-    facebook: uiIcon('facebook'),
-    twitter: uiIcon('twitter'),
-    instagram: uiIcon('instagram'),
-    website: uiIcon('globe')
+    facebook: `<svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;flex-shrink:0;"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>`,
+    twitter: `<svg viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px;flex-shrink:0;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>`,
+    instagram: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0;"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`,
+    website: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`
   };
 
   const hasSimilar = item.similar_sources_count > 0 && Array.isArray(item.similar_articles) && item.similar_articles.length > 0;
 
-  // Tingkat keyakinan (confidence percentage)
-  let confidencePct = null;
+  // Keyakinan / Confidence percentage
+  let confidencePct = 82;
   if (item.nlp_sentiment && typeof item.nlp_sentiment.confidence === 'number') {
     const rawConf = item.nlp_sentiment.confidence;
     confidencePct = rawConf <= 1.0 ? Math.round(rawConf * 100) : Math.round(rawConf);
@@ -500,64 +504,105 @@ function renderResultCard(item) {
     confidencePct = rawConf <= 1.0 ? Math.round(rawConf * 100) : Math.round(rawConf);
   }
 
-  const modelName = item.nlp_sentiment?.model || 'IndoBERT';
-  const isFallback = modelName === 'lexicon-fallback';
-  const modelLabel = isFallback ? 'Lexicon' : 'IndoBERT';
+  // Sentimen Label
+  const sent = (item.sentiment || 'netral').toLowerCase();
+  const sentClass = (sent === 'netral' || sent === 'neutral') ? 'netral' : sent;
+  const sentLabel = sent === 'positif' ? 'Positif' : sent === 'negatif' ? 'Negatif' : 'Netral';
 
-  let tooltipTitle = `Analisis Sentimen: ${item.sentiment || 'netral'} | Keyakinan: ${confidencePct !== null ? confidencePct : 85}% (${modelLabel})`;
-  if (item.nlp_sentiment && item.nlp_sentiment.probabilities) {
-    const p = item.nlp_sentiment.probabilities;
-    const pPos = typeof p.positif === 'number' ? Math.round(p.positif * 100) : null;
-    const pNeu = typeof (p.netral ?? p.neutral) === 'number' ? Math.round((p.netral ?? p.neutral) * 100) : null;
-    const pNeg = typeof p.negatif === 'number' ? Math.round(p.negatif * 100) : null;
-    if (pPos !== null && pNeu !== null && pNeg !== null) {
-      tooltipTitle += ` (Positif: ${pPos}%, Netral: ${pNeu}%, Negatif: ${pNeg}%)`;
-    }
-  }
+  // Hapus tulisan (Headline) jika ada di awal teks, sesuai instruksi user
+  let rawTitle = item.title || item.snippet || 'Tidak ada judul postingan';
+  let cleanTitle = rawTitle.replace(/^\s*\(Headline\)\s*/i, '').trim();
+
+  // Keyword text
+  const keywordText = item.keyword_text || item.keyword || 'muhammadiyah';
+
+  // Waktu
+  const timeText = formatTime(item.scanned_at);
 
   return `
-    <div class="result-card ${item.platform} fade-in" id="card-${item.id}">
-      <div class="result-platform-bar"></div>
-      <div class="result-body">
-        <div class="result-title">
-          <a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">
-            ${escapeHtml(item.title)}
-          </a>
-        </div>
-        ${item.snippet ? `<div class="result-snippet">${escapeHtml(item.snippet)}</div>` : ''}
-        
-        <div class="result-meta">
-          <span class="platform-badge ${item.platform}">
-            ${platformIcons[item.platform] || uiIcon('link')} ${platformNames[item.platform] || item.platform}
-          </span>
-          <span class="result-keyword-badge">${uiIcon('key')} ${escapeHtml(item.keyword_text)}</span>
-          
-          ${item.sentiment ? `<span class="sentiment-badge sentiment-${item.sentiment === 'netral' ? 'neutral' : item.sentiment}" title="${escapeHtml(tooltipTitle)}">
-            ${item.sentiment === 'positif' ? `${uiIcon('positive')} Positif` : item.sentiment === 'negatif' ? `${uiIcon('negative')} Negatif` : `${uiIcon('neutral')} Netral`}
-            ${confidencePct !== null ? `<span class="confidence-pill" title="Tingkat Keyakinan: ${confidencePct}%">${confidencePct}% Keyakinan</span>` : ''}
-            <span class="model-pill">${modelLabel}</span>
-          </span>` : ''}
+    <div class="result-card ${platform} fade-in" id="card-${item.id}" onclick="onResultCardClick(event, ${item.id})">
+      <div class="result-card-body">
+        <!-- 1. Header Baris Judul & Checkbox Tinjau -->
+        <div class="result-card-header-row">
+          <label class="result-card-checkbox-label" onclick="event.stopPropagation();" title="Centang untuk memilih temuan ini">
+            <input type="checkbox" class="result-item-checkbox" data-id="${item.id}" data-title="${escapeHtml(cleanTitle)}" onchange="onResultCheckboxChange(this, event)">
+          </label>
+          <div style="flex:1; min-width:0;">
+            <h3 class="result-card-title">${escapeHtml(cleanTitle)}</h3>
 
-          ${hasSimilar ? `<button type="button" class="similar-sources-pill" onclick="toggleSimilarTray(${item.id})" title="Klik untuk melihat media lain yang juga memberitakan topik ini">
-            ${uiIcon('news')} Dibahas di ${item.similar_sources_count} media lain (+${item.similar_sources_count})
-          </button>` : ''}
-
-          <span class="result-link" title="${escapeHtml(item.link)}">
-            ${escapeHtml(item.display_link || item.link)}
-          </span>
-          <span class="result-time">${formatTime(item.scanned_at)}</span>
+            <!-- 2. Link Lihat Selengkapnya dengan Simbol Panah -->
+            <div style="margin-top: 4px;">
+              <a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer" class="result-read-more" title="Buka tautan postingan asli" onclick="event.stopPropagation();">
+                Lihat Selengkapnya
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;margin-left:3px;">
+                  <line x1="7" y1="17" x2="17" y2="7"></line>
+                  <polyline points="7 7 17 7 17 17"></polyline>
+                </svg>
+              </a>
+            </div>
+          </div>
         </div>
 
-        <!-- Tray: Similar Articles / Multi-source Coverage -->
+        <!-- 3. Garis Pembatas Halus -->
+        <div class="result-card-divider"></div>
+
+        <!-- 4. Baris Footer: Badges di Kiri & Waktu di Kanan -->
+        <div class="result-card-footer">
+          <div class="result-badges-left">
+            <!-- Platform Badge -->
+            <span class="result-platform-pill ${platform}">
+              ${platformIcons[platform] || platformIcons.website}
+              <span>${platformLabels[platform] || platform.toUpperCase()}</span>
+            </span>
+
+            <!-- Keyword Badge -->
+            <span class="result-keyword-pill">
+              keyword: ${escapeHtml(keywordText)}
+            </span>
+
+            <!-- Split Sentiment & Keyakinan Capsule (Teks Murni Tanpa Emoji) -->
+            <span class="result-sentiment-split ${sentClass}" title="Tingkat Keyakinan: ${confidencePct}%">
+              <span class="sentiment-split-left">
+                <span>${sentLabel}</span>
+              </span>
+              <span class="sentiment-split-right">
+                ${confidencePct}% Keyakinan
+              </span>
+            </span>
+
+            ${hasSimilar ? `
+              <button type="button" class="similar-sources-pill" onclick="toggleSimilarTray(${item.id})" title="Klik untuk melihat media lain yang juga memberitakan topik ini">
+                ${uiIcon('news')} +${item.similar_sources_count} media lain
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- Time & Actions Right Side -->
+          <div class="result-time-right">
+            <button type="button" class="btn-delete-item" data-id="${item.id}" data-title="${escapeHtml(cleanTitle)}" onclick="handleDeleteResultClick(this, event)" title="Hapus temuan postingan ini">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+              <span>Hapus</span>
+            </button>
+            <span class="result-time-dot">•</span>
+            <span>${timeText}</span>
+          </div>
+        </div>
+
+        <!-- Tray: Berita Serupa jika ada -->
         ${hasSimilar ? `
-          <div class="similar-sources-tray" id="tray-${item.id}" style="display: none;">
+          <div class="similar-sources-tray" id="tray-${item.id}" style="display: none; margin-top: 14px;">
             <div class="similar-sources-tray-title">
               <span>${uiIcon('news')} Sumber & Berita Serupa Terkait Isu Ini (${item.similar_sources_count} media):</span>
               <button type="button" class="btn btn-ghost btn-sm" onclick="toggleSimilarTray(${item.id})" style="padding: 2px 6px; font-size: 0.68rem; cursor:pointer;">Tutup</button>
             </div>
             ${item.similar_articles.map(sim => `
               <div class="similar-source-item">
-                <span style="font-size: 0.75rem;">${platformIcons[sim.platform] || uiIcon('link')}</span>
+                <span style="font-size: 0.75rem;">${platformIcons[sim.platform] || platformIcons.website}</span>
                 <a href="${escapeHtml(sim.link)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(sim.title)}">
                   ${escapeHtml(sim.title)}
                 </a>
@@ -867,4 +912,432 @@ if (document.readyState === 'loading') {
 } else {
   initApp();
 }
+
+// ─── Manual Finding Deletion & Confirmation Modal ─────
+let pendingDeleteResultId = null;
+
+function ensureDeleteResultModal() {
+  if (document.getElementById('deleteResultModal')) return;
+  const modalDiv = document.createElement('div');
+  modalDiv.className = 'modal-overlay';
+  modalDiv.id = 'deleteResultModal';
+  modalDiv.style.display = 'none';
+  modalDiv.innerHTML = `
+    <div class="modal-content" style="max-width: 440px; text-align: center; padding: 28px 24px;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </div>
+      <h3 class="modal-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">
+        Konfirmasi Hapus Temuan
+      </h3>
+      <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 12px;">
+        Apakah Anda yakin ingin menghapus temuan postingan ini?
+      </p>
+      <div id="deleteResultTargetTitle" style="font-size: 0.82rem; font-weight: 600; color: var(--text); background: var(--bg-secondary, rgba(0,0,0,0.03)); padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; border: 1px solid var(--border); text-align: left; max-height: 80px; overflow-y: auto; word-break: break-word;">
+      </div>
+      <p style="font-size: 0.78rem; color: #ef4444; font-weight: 500; margin-bottom: 22px;">
+        ⚠️ Perhatian: Data yang sudah dihapus tidak dapat dikembalikan.
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button type="button" class="btn btn-outline" style="min-width: 110px;" onclick="closeDeleteResultModal()">
+          Batal
+        </button>
+        <button type="button" class="btn btn-danger" id="btnConfirmDeleteResult" style="min-width: 130px; background: #ef4444; border-color: #ef4444; color: #ffffff; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="executeDeleteResult()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          Ya, Hapus
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modalDiv);
+
+  modalDiv.addEventListener('click', (e) => {
+    if (e.target === modalDiv) {
+      closeDeleteResultModal();
+    }
+  });
+}
+
+function handleDeleteResultClick(btn, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  const id = btn.getAttribute('data-id');
+  const title = btn.getAttribute('data-title');
+  confirmDeleteResult(id, title);
+}
+
+function confirmDeleteResult(id, title) {
+  pendingDeleteResultId = id;
+  ensureDeleteResultModal();
+  const titleEl = document.getElementById('deleteResultTargetTitle');
+  if (titleEl) {
+    titleEl.textContent = title || 'Temuan terpilih';
+  }
+  const modal = document.getElementById('deleteResultModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeDeleteResultModal() {
+  pendingDeleteResultId = null;
+  const modal = document.getElementById('deleteResultModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function executeDeleteResult() {
+  if (!pendingDeleteResultId) return;
+  const id = pendingDeleteResultId;
+  const btn = document.getElementById('btnConfirmDeleteResult');
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = 'Menghapus...';
+  }
+
+  try {
+    const res = await api(`/api/results/${id}`, 'DELETE');
+    closeDeleteResultModal();
+    showToast(res.message || 'Temuan berhasil dihapus', 'success');
+
+    // Animasi fade out kartu yang dihapus
+    const card = document.getElementById(`card-${id}`);
+    if (card) {
+      card.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(-8px) scale(0.98)';
+      setTimeout(() => {
+        card.remove();
+        const container = document.getElementById('resultsList');
+        if (container) {
+          const remaining = container.querySelectorAll('.result-card').length;
+          const countDisplay = document.getElementById('resultCountDisplay');
+          if (countDisplay) countDisplay.textContent = remaining;
+          if (remaining === 0) {
+            container.innerHTML = `
+              <div class="empty-state fade-in">
+                <div class="empty-state-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M8 12h8m-8 4h8"></path></svg></div>
+                <div class="empty-state-title">Tidak ada aktivitas</div>
+                <div class="empty-state-desc">Belum ada aktivitas untuk filter yang dipilih.</div>
+              </div>
+            `;
+          }
+        }
+        if (typeof loadBadges === 'function') {
+          const filterMonitor = document.getElementById('filterMonitor');
+          loadBadges(filterMonitor ? filterMonitor.value : null);
+        }
+      }, 250);
+    }
+  } catch (err) {
+    showToast(err.message || 'Gagal menghapus temuan', 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
+  }
+}
+
+window.handleDeleteResultClick = handleDeleteResultClick;
+window.confirmDeleteResult = confirmDeleteResult;
+window.closeDeleteResultModal = closeDeleteResultModal;
+window.executeDeleteResult = executeDeleteResult;
+
+// ─── Review Mode (Tinjau Temuan) & Batch Deletion Logic ─
+let isReviewModeActive = false;
+let pendingBatchDeleteIds = [];
+
+function toggleReviewMode(forceState = null) {
+  isReviewModeActive = forceState !== null ? Boolean(forceState) : !isReviewModeActive;
+  
+  const resultsList = document.getElementById('resultsList');
+  const reviewBar = document.getElementById('reviewActionBar');
+  const toggleBtn = document.getElementById('btnToggleReviewMode');
+
+  if (isReviewModeActive) {
+    if (resultsList) resultsList.classList.add('review-mode-active');
+    if (reviewBar) reviewBar.style.display = 'flex';
+    if (toggleBtn) {
+      toggleBtn.classList.add('btn-review-active');
+      toggleBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Mode Tinjau Aktif</span>
+      `;
+    }
+  } else {
+    if (resultsList) resultsList.classList.remove('review-mode-active');
+    if (reviewBar) reviewBar.style.display = 'none';
+    if (toggleBtn) {
+      toggleBtn.classList.remove('btn-review-active');
+      toggleBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+          <polyline points="9 11 12 14 22 4"></polyline>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+        </svg>
+        <span>Tinjau Temuan</span>
+      `;
+    }
+    clearResultCheckboxes();
+  }
+  updateSelectedCountUI();
+}
+
+function clearResultCheckboxes() {
+  const checkboxes = document.querySelectorAll('.result-item-checkbox');
+  checkboxes.forEach(cb => {
+    cb.checked = false;
+    const card = cb.closest('.result-card');
+    if (card) card.classList.remove('is-selected');
+  });
+  const selectAllCb = document.getElementById('selectAllResults');
+  if (selectAllCb) selectAllCb.checked = false;
+  updateSelectedCountUI();
+}
+
+function onResultCheckboxChange(checkbox, event) {
+  if (event) event.stopPropagation();
+  const card = checkbox.closest('.result-card');
+  if (card) {
+    if (checkbox.checked) {
+      card.classList.add('is-selected');
+    } else {
+      card.classList.remove('is-selected');
+    }
+  }
+  updateSelectedCountUI();
+}
+
+function onResultCardClick(event, id) {
+  if (!isReviewModeActive) return;
+  if (event.target.closest('a, button, input')) return;
+  const card = document.getElementById(`card-${id}`);
+  if (!card) return;
+  const checkbox = card.querySelector('.result-item-checkbox');
+  if (checkbox) {
+    checkbox.checked = !checkbox.checked;
+    onResultCheckboxChange(checkbox);
+  }
+}
+
+function toggleSelectAllResults(checked) {
+  const checkboxes = document.querySelectorAll('.result-item-checkbox');
+  checkboxes.forEach(cb => {
+    cb.checked = checked;
+    const card = cb.closest('.result-card');
+    if (card) {
+      if (checked) card.classList.add('is-selected');
+      else card.classList.remove('is-selected');
+    }
+  });
+  updateSelectedCountUI();
+}
+
+function getSelectedResults() {
+  const checkboxes = document.querySelectorAll('.result-item-checkbox:checked');
+  const items = [];
+  checkboxes.forEach(cb => {
+    items.push({
+      id: cb.getAttribute('data-id'),
+      title: cb.getAttribute('data-title') || 'Temuan'
+    });
+  });
+  return items;
+}
+
+function updateSelectedCountUI() {
+  const allCheckboxes = document.querySelectorAll('.result-item-checkbox');
+  const checkedCheckboxes = document.querySelectorAll('.result-item-checkbox:checked');
+  const count = checkedCheckboxes.length;
+  const total = allCheckboxes.length;
+
+  const totalVisibleEl = document.getElementById('totalVisibleCount');
+  if (totalVisibleEl) totalVisibleEl.textContent = total;
+
+  const countTextEl = document.getElementById('selectedCountText');
+  if (countTextEl) countTextEl.textContent = `${count} dipilih`;
+
+  const btnDelete = document.getElementById('btnDeleteSelected');
+  const btnDeleteLabel = document.getElementById('btnDeleteSelectedLabel');
+  if (btnDelete) {
+    btnDelete.disabled = count === 0;
+  }
+  if (btnDeleteLabel) {
+    btnDeleteLabel.textContent = count > 0 ? `Hapus (${count}) Terpilih` : 'Hapus Terpilih';
+  }
+
+  const selectAllCb = document.getElementById('selectAllResults');
+  if (selectAllCb) {
+    selectAllCb.checked = total > 0 && count === total;
+    selectAllCb.indeterminate = count > 0 && count < total;
+  }
+}
+
+function ensureBatchDeleteModal() {
+  if (document.getElementById('batchDeleteModal')) return;
+  const modalDiv = document.createElement('div');
+  modalDiv.className = 'modal-overlay';
+  modalDiv.id = 'batchDeleteModal';
+  modalDiv.style.display = 'none';
+  modalDiv.innerHTML = `
+    <div class="modal-content" style="max-width: 480px; text-align: center; padding: 28px 24px;">
+      <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </div>
+      <h3 class="modal-title" id="batchDeleteModalTitle" style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">
+        Konfirmasi Hapus Temuan Terpilih
+      </h3>
+      <p id="batchDeleteModalDesc" style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 12px;">
+        Apakah Anda yakin ingin menghapus data temuan yang telah dipilih?
+      </p>
+      <div id="batchDeleteListPreview" style="font-size: 0.80rem; color: var(--text); background: var(--bg-secondary, rgba(0,0,0,0.03)); padding: 12px 14px; border-radius: 8px; margin-bottom: 14px; border: 1px solid var(--border); text-align: left; max-height: 120px; overflow-y: auto;">
+      </div>
+      <p style="font-size: 0.80rem; color: #ef4444; font-weight: 600; margin-bottom: 22px;">
+        ⚠️ Perhatian: Data yang sudah dihapus tidak dapat dikembalikan.
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button type="button" class="btn btn-outline" style="min-width: 110px;" onclick="closeBatchDeleteModal()">
+          Batal
+        </button>
+        <button type="button" class="btn btn-danger" id="btnConfirmBatchDelete" style="min-width: 150px; background: #ef4444; border-color: #ef4444; color: #ffffff; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight:600;" onclick="executeBatchDelete()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <span id="btnConfirmBatchDeleteText">Ya, Hapus Terpilih</span>
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modalDiv);
+
+  modalDiv.addEventListener('click', (e) => {
+    if (e.target === modalDiv) {
+      closeBatchDeleteModal();
+    }
+  });
+}
+
+function confirmDeleteSelected() {
+  const selected = getSelectedResults();
+  if (selected.length === 0) {
+    showToast('Pilih minimal satu temuan untuk dihapus', 'info');
+    return;
+  }
+  pendingBatchDeleteIds = selected.map(s => s.id);
+  ensureBatchDeleteModal();
+
+  const titleEl = document.getElementById('batchDeleteModalTitle');
+  const descEl = document.getElementById('batchDeleteModalDesc');
+  const previewEl = document.getElementById('batchDeleteListPreview');
+  const btnText = document.getElementById('btnConfirmBatchDeleteText');
+
+  if (titleEl) titleEl.textContent = `Konfirmasi Hapus ${selected.length} Temuan`;
+  if (descEl) descEl.innerHTML = `Apakah Anda yakin ingin menghapus <strong>${selected.length} temuan</strong> yang telah dicentang secara permanen?`;
+  if (btnText) btnText.textContent = `Ya, Hapus (${selected.length}) Temuan`;
+
+  if (previewEl) {
+    const previewList = selected.slice(0, 5).map(s => `<li style="margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">• ${escapeHtml(s.title)}</li>`).join('');
+    const moreCount = selected.length > 5 ? `<li style="color:var(--text-muted); font-style:italic; margin-top:4px;">...dan ${selected.length - 5} temuan lainnya</li>` : '';
+    previewEl.innerHTML = `<ul style="list-style:none; padding:0; margin:0;">${previewList}${moreCount}</ul>`;
+  }
+
+  const modal = document.getElementById('batchDeleteModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeBatchDeleteModal() {
+  pendingBatchDeleteIds = [];
+  const modal = document.getElementById('batchDeleteModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function executeBatchDelete() {
+  if (!pendingBatchDeleteIds || pendingBatchDeleteIds.length === 0) return;
+  const idsToDelete = [...pendingBatchDeleteIds];
+  const btn = document.getElementById('btnConfirmBatchDelete');
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = 'Menghapus...';
+  }
+
+  try {
+    const res = await api('/api/results/batch-delete', 'POST', { ids: idsToDelete });
+    closeBatchDeleteModal();
+    showToast(res.message || `${idsToDelete.length} temuan berhasil dihapus`, 'success');
+
+    // Animasi fade out untuk semua kartu yang dihapus
+    idsToDelete.forEach(id => {
+      const card = document.getElementById(`card-${id}`);
+      if (card) {
+        card.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(-8px) scale(0.98)';
+      }
+    });
+
+    setTimeout(() => {
+      idsToDelete.forEach(id => {
+        const card = document.getElementById(`card-${id}`);
+        if (card) card.remove();
+      });
+
+      const container = document.getElementById('resultsList');
+      if (container) {
+        const remaining = container.querySelectorAll('.result-card').length;
+        const countDisplay = document.getElementById('resultCountDisplay');
+        if (countDisplay) countDisplay.textContent = remaining;
+        if (remaining === 0) {
+          container.innerHTML = `
+            <div class="empty-state fade-in">
+              <div class="empty-state-icon"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M8 12h8m-8 4h8"></path></svg></div>
+              <div class="empty-state-title">Tidak ada aktivitas</div>
+              <div class="empty-state-desc">Belum ada aktivitas untuk filter yang dipilih.</div>
+            </div>
+          `;
+        }
+      }
+
+      // Update badge counts & selection UI
+      updateSelectedCountUI();
+      if (typeof loadBadges === 'function') {
+        const filterMonitor = document.getElementById('filterMonitor');
+        loadBadges(filterMonitor ? filterMonitor.value : null);
+      }
+    }, 250);
+
+  } catch (err) {
+    showToast(err.message || 'Gagal menghapus temuan terpilih', 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
+  }
+}
+
+window.isReviewModeActive = isReviewModeActive;
+window.toggleReviewMode = toggleReviewMode;
+window.clearResultCheckboxes = clearResultCheckboxes;
+window.onResultCheckboxChange = onResultCheckboxChange;
+window.onResultCardClick = onResultCardClick;
+window.toggleSelectAllResults = toggleSelectAllResults;
+window.getSelectedResults = getSelectedResults;
+window.updateSelectedCountUI = updateSelectedCountUI;
+window.ensureBatchDeleteModal = ensureBatchDeleteModal;
+window.confirmDeleteSelected = confirmDeleteSelected;
+window.closeBatchDeleteModal = closeBatchDeleteModal;
+window.executeBatchDelete = executeBatchDelete;
+
+
 

@@ -1,0 +1,27 @@
+# ─── Service Python & Dependensi PyTorch (Diabaikan dari Vercel) ───
+sentiment_service/
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.bin
+*.pt
+*.pth
+*.safetensors
+*.onnx
+.huggingface/
+
+# ─── Pengujian, Dokumentasi, & Editor ───
+tests/
+*.md
+.vscode/
+.git/
+.github/
+benchmark_results.json
+

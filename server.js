@@ -6,6 +6,7 @@ const db = require('./src/database');
 const authVault = require('./src/auth_vault');
 const scheduler = require('./src/scheduler');
 const { buildPDFReport } = require('./src/pdf_report_builder');
+const nlpSentiment = require('./src/nlp_sentiment');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -223,15 +224,23 @@ app.use('/api', (req, res, next) => {
 app.post('/api/auth/avatar', (req, res) => {
   try {
     const { avatar } = req.body;
-    const username = req.user.username;
-    const avatarsDir = path.join(__dirname, 'public', 'images', 'avatars');
-    if (!fs.existsSync(avatarsDir)) {
-      fs.mkdirSync(avatarsDir, { recursive: true });
-    }
-
     if (!avatar) {
       db.updateUserAvatar(username, null);
       return res.json({ success: true, message: 'Foto profil berhasil dihapus.', avatar_url: null });
+    }
+
+    if (process.env.VERCEL) {
+      db.updateUserAvatar(username, avatar);
+      return res.json({
+        success: true,
+        message: 'Foto profil berhasil diperbarui.',
+        avatar_url: avatar
+      });
+    }
+
+    const avatarsDir = path.join(__dirname, 'public', 'images', 'avatars');
+    if (!fs.existsSync(avatarsDir)) {
+      fs.mkdirSync(avatarsDir, { recursive: true });
     }
 
     const matches = avatar.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
@@ -514,6 +523,32 @@ app.delete('/api/results', (req, res) => {
   }
 });
 
+app.delete('/api/results/:id', (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const deleted = db.deleteResult(id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Temuan tidak ditemukan atau sudah dihapus' });
+    }
+    res.json({ success: true, message: 'Temuan berhasil dihapus' });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+app.post('/api/results/batch-delete', (req, res) => {
+  try {
+    const { ids } = req.body || {};
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'Daftar ID temuan tidak valid atau kosong' });
+    }
+    const count = db.deleteResultsBatch(ids);
+    res.json({ success: true, count, message: `${count} temuan berhasil dihapus` });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 // ─── API: Settings ────────────────────────────────────────────
 app.get('/api/settings', (req, res) => {
   try {
@@ -534,7 +569,15 @@ app.get('/api/settings', (req, res) => {
 
 app.post('/api/settings', (req, res) => {
   try {
-    const allowedKeys = ['google_api_key', 'google_cx_id', 'interval_hours', 'max_results_per_query', 'auto_start'];
+    const allowedKeys = [
+      'google_api_key',
+      'google_cx_id',
+      'interval_hours',
+      'max_results_per_query',
+      'auto_start',
+      'nlp_engine',
+      'nlp_service_url'
+    ];
     const { settings } = req.body;
 
     if (!settings || typeof settings !== 'object') {
@@ -552,9 +595,43 @@ app.post('/api/settings', (req, res) => {
       }
     }
 
-    res.json({ success: true, message: 'Settings berhasil disimpan' });
+    res.json({ success: true, message: 'Pengaturan berhasil disimpan' });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// ─── API: Uji Koneksi Service NLP / PyTorch ───────────────────
+app.post('/api/settings/test-nlp-service', async (req, res) => {
+  try {
+    const rawUrl = req.body.url || db.getSetting('nlp_service_url') || 'http://127.0.0.1:8000';
+    const cleanUrl = String(rawUrl).trim().replace(/\/+$/, '');
+    const startTime = Date.now();
+    const health = await nlpSentiment.checkIndoBERTHealth(cleanUrl);
+    const elapsed = Date.now() - startTime;
+
+    if (health && health.status === 'ready') {
+      return res.json({
+        success: true,
+        status: 'ready',
+        elapsed_ms: elapsed,
+        data: health,
+        message: `Koneksi berhasil! Model: ${health.model || 'IndoBERT'}, Device: ${health.device || 'CPU'}, Versi: ${health.version || '1.0.0'} (${elapsed} ms)`
+      });
+    } else {
+      return res.json({
+        success: false,
+        status: 'offline',
+        data: health,
+        message: `Service di ${cleanUrl} tidak merespons: ${health.error || 'Status service bukan ready'}. Sistem akan menggunakan fallback Node.js.`
+      });
+    }
+  } catch (err) {
+    return res.json({
+      success: false,
+      status: 'offline',
+      message: `Gagal terhubung ke ${req.body.url || 'service'}: ${err.message}. Sistem akan otomatis menggunakan fallback Node.js.`
+    });
   }
 });
 
@@ -854,6 +931,10 @@ app.get('/settings', pageAuthGuard, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'settings.html'));
 });
 
+app.get(['/help', '/bantuan'], pageAuthGuard, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'help.html'));
+});
+
 // Guard direct requests for html files
 app.get('/:page.html', pageAuthGuard, (req, res) => {
   const target = path.join(__dirname, 'public', `${req.params.page}.html`);
@@ -865,7 +946,7 @@ app.get('/:page.html', pageAuthGuard, (req, res) => {
 });
 
 // ─── Start Server ─────────────────────────────────────────────
-if (require.main === module) {
+if (require.main === module || !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`\n══════════════════════════════════════════════════`);
     console.log(`  🔍 Issue Monitor Server`);
@@ -882,4 +963,3 @@ if (require.main === module) {
 }
 
 module.exports = app;
-

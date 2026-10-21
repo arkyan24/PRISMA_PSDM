@@ -8,11 +8,30 @@
 
 const axios = require('axios');
 
-// ─── Environment Configuration ────────────────────────────────
+// ─── Environment & Setting Configuration ─────────────────────
 function getSentimentApiUrl() {
+  try {
+    const db = require('./database');
+    const customUrl = db.getSetting('nlp_service_url');
+    if (customUrl && typeof customUrl === 'string' && customUrl.trim()) {
+      return customUrl.trim().replace(/\/+$/, '');
+    }
+  } catch (e) {}
   const rawUrl = process.env.SENTIMENT_API_URL || 'http://127.0.0.1:8000';
   return rawUrl.replace(/\/+$/, '');
 }
+
+function getNlpEnginePreference() {
+  try {
+    const db = require('./database');
+    const mode = db.getSetting('nlp_engine');
+    if (mode && typeof mode === 'string') {
+      return mode.trim().toLowerCase();
+    }
+  } catch (e) {}
+  return (process.env.NLP_ENGINE || 'auto').trim().toLowerCase();
+}
+
 function getSentimentTimeout() {
   return parseInt(process.env.SENTIMENT_TIMEOUT_MS || '5000', 10);
 }
@@ -255,6 +274,14 @@ async function analyzeSentimentNLPAsync(text) {
     return analyzeSentimentNLP(text);
   }
 
+  // Jika mode eksplisit adalah 'nodejs' (Cloud Mode), langsung gunakan Node.js lexicon
+  const engine = getNlpEnginePreference();
+  if (engine === 'nodejs') {
+    const res = analyzeSentimentNLP(text);
+    res.model = 'lexicon-nodejs-cloud';
+    return res;
+  }
+
   const apiUrl = getSentimentApiUrl();
   const timeoutMs = getSentimentTimeout();
 
@@ -310,6 +337,16 @@ async function analyzeSentimentAsync(text) {
 async function analyzeSentimentBatchAsync(texts) {
   if (!Array.isArray(texts) || texts.length === 0) return [];
 
+  // Jika mode eksplisit adalah 'nodejs' (Cloud Mode), langsung proses leksikon
+  const engine = getNlpEnginePreference();
+  if (engine === 'nodejs') {
+    return texts.map(t => {
+      const fb = analyzeSentimentNLP(t);
+      fb.model = 'lexicon-nodejs-cloud';
+      return fb;
+    });
+  }
+
   const apiUrl = getSentimentApiUrl();
   const timeoutMs = getSentimentTimeout();
 
@@ -356,10 +393,12 @@ async function analyzeSentimentBatchAsync(texts) {
 /**
  * Cek kesehatan service IndoBERT
  */
-async function checkIndoBERTHealth() {
-  const apiUrl = getSentimentApiUrl();
+async function checkIndoBERTHealth(customUrl) {
+  const apiUrl = (customUrl && typeof customUrl === 'string' && customUrl.trim())
+    ? customUrl.trim().replace(/\/+$/, '')
+    : getSentimentApiUrl();
   try {
-    const res = await axios.get(`${apiUrl}/health`, { timeout: 2000 });
+    const res = await axios.get(`${apiUrl}/health`, { timeout: 2500 });
     return res.data;
   } catch (err) {
     return {

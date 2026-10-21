@@ -2,7 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const os = require('os');
+
+const DATA_DIR = process.env.VERCEL ? path.join(os.tmpdir(), 'prisma_data') : path.join(__dirname, '..', 'data');
 const VAULT_FILE = path.join(DATA_DIR, 'auth_vault.json');
 
 const DEFAULT_VAULT = {

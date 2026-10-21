@@ -113,12 +113,12 @@
 
     <div class="sidebar-divider"></div>
     <div class="sidebar-bottom">
-      <div class="sidebar-item" title="Bantuan" style="cursor:pointer">
+      <a href="/help" class="sidebar-item" title="Bantuan & Panduan Setup NLP">
         <span class="sidebar-item-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         </span>
         <span class="sidebar-item-text">Bantuan</span>
-      </div>
+      </a>
     </div>
   </aside>
 
@@ -476,7 +476,94 @@
             </form>
           </div>
 
-          <!-- Section C: Zona Bahaya & Hapus Data -->
+          <!-- Section C: Mesin Analisis Sentimen NLP (Node.js Cloud vs PyTorch Lokal) -->
+          <div class="settings-inner-section">
+            <div class="settings-inner-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#4f46cb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a4 4 0 0 1 4 4c0 1.1-.4 2.1-1.1 2.8l2.7 2.7c1.4-1 3.4-.8 4.6.4 1.4 1.4 1.4 3.6 0 5s-3.6 1.4-5 0c-1.2-1.2-1.4-3.2-.4-4.6l-2.7-2.7C9.4 10.3 8.4 10.7 7.3 10.7 5.1 10.7 3.3 8.9 3.3 6.7S5.1 2.7 7.3 2.7c1.1 0 2.1.4 2.8 1.1L12 2z"></path>
+                <circle cx="12" cy="18" r="3"></circle>
+              </svg>
+              Mesin Analisis Sentimen NLP
+            </div>
+            <div class="settings-inner-desc">Pilih mesin klasifikasi: Bawaan Node.js (Vercel Cloud Ringan) atau PyTorch IndoBERT (Opsional di Perangkat Lokal)</div>
+
+            <!-- NLP Status Pill Banner -->
+            <div class="mon-stats-card active" style="margin-bottom:16px;">
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Mode Aktif</span>
+                <span class="mon-stat-val" id="statNlpEngineVal">Otomatis (Hybrid)</span>
+              </div>
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Default Cloud</span>
+                <span class="mon-stat-val">Node.js Lexicon</span>
+              </div>
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Beban Vercel</span>
+                <span class="mon-stat-val" style="color:var(--positive);">0 MB PyTorch</span>
+              </div>
+              <div class="mon-stat-cell">
+                <span class="mon-stat-lbl">Status Service</span>
+                <span class="mon-stat-val" id="statNlpStatusVal" style="font-size:0.75rem;">Siap (Fallback Aktif)</span>
+              </div>
+            </div>
+
+            <form id="nlpSettingsForm" onsubmit="saveNlpSettings(event)">
+              <!-- Pilihan Mode NLP -->
+              <div class="form-group" style="margin-bottom:14px;">
+                <label class="form-label" for="settingNlpEngine">Mode Pemrosesan Sentimen</label>
+                <select class="form-input" id="settingNlpEngine" onchange="handleNlpEngineChange(this.value)">
+                  <option value="auto">🟢 Otomatis / Hybrid (Coba PyTorch Lokal, Fallback ke Node.js)</option>
+                  <option value="nodejs">⚡ Bawaan Node.js (Cloud Mode — Ringan, 0 MB PyTorch, Tanpa Instal Apapun)</option>
+                  <option value="local_pytorch">🧠 Lokal PyTorch (IndoBERT Transformer via Service Python)</option>
+                </select>
+                <span class="avatar-hint-text" style="margin-top:6px; display:block;" id="nlpEngineHelpText">
+                  Secara default, jika service Python lokal tidak aktif, aplikasi otomatis memakai analisis Node.js tanpa memicu error.
+                </span>
+              </div>
+
+              <!-- URL Service Python / PyTorch -->
+              <div class="form-group" id="nlpServiceUrlGroup" style="margin-bottom:14px;">
+                <label class="form-label" for="settingNlpServiceUrl">URL Service PyTorch / IndoBERT</label>
+                <div style="display:flex; gap:8px;">
+                  <input class="form-input" type="text" id="settingNlpServiceUrl" placeholder="http://127.0.0.1:8000" value="http://127.0.0.1:8000" style="flex:1;">
+                  <button type="button" class="btn btn-secondary" id="btnTestNlpService" onclick="testNlpServiceConnection()" style="padding:8px 14px; font-size:0.8rem; white-space:nowrap;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    Uji Koneksi
+                  </button>
+                </div>
+                <div id="nlpConnectionStatusBox" style="display:none; margin-top:8px; padding:10px 12px; border-radius:10px; font-size:0.78rem; line-height:1.45;"></div>
+              </div>
+
+              <!-- Info Box Panduan Lokal User -->
+              <div class="settings-info-box" style="margin-bottom:14px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div style="font-size:0.78rem;">
+                  <strong>Panduan Menjalankan PyTorch di Laptop Anda (Opsional):</strong>
+                  <p style="margin-top:3px; color:var(--text-muted); line-height:1.45;">
+                    • <strong>Localhost</strong>: Jalankan perintah <code>python sentiment_service/app.py</code> di terminal laptop Anda.<br>
+                    • <strong>Di Vercel Hosting</strong>: Hubungkan laptop Anda via tunnel (contoh: <code>ngrok http 8000</code>) lalu masukkan URL ngrok di atas, atau cukup gunakan mode <strong>Bawaan Node.js</strong> tanpa instal apapun di komputer.
+                  </p>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="saveNlpButton" type="submit" style="width:100%; justify-content:center; padding:11px 18px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Simpan Pengaturan NLP
+              </button>
+            </form>
+          </div>
+
+          <!-- Section D: Zona Bahaya & Hapus Data -->
           <div class="settings-inner-section" style="border-top-color:rgba(239,68,68,0.25);">
             <div class="settings-inner-title" style="color:var(--negative);">
               <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -805,7 +892,7 @@
     }
   }
 
-  // ─── Load & Save Scheduler Settings ───
+  // ─── Load & Save Scheduler & NLP Settings ───
   async function loadSystemSettings() {
     try {
       const res = await api('/api/settings');
@@ -819,9 +906,20 @@
         const maxResultsEl = document.getElementById('settingMaxResults');
         if (maxResultsEl) maxResultsEl.value = maxResults;
 
-        // Update Stat Banner
+        // Update Stat Banner Scheduler
         document.getElementById('statAutoStartVal').textContent = isAutoStart ? 'Aktif' : 'Nonaktif';
         document.getElementById('statMaxResultsVal').textContent = `${maxResults} Item`;
+
+        // Load NLP Settings
+        const nlpEngine = s.nlp_engine || 'auto';
+        const nlpEngineEl = document.getElementById('settingNlpEngine');
+        if (nlpEngineEl) nlpEngineEl.value = nlpEngine;
+
+        const nlpServiceUrl = s.nlp_service_url || 'http://127.0.0.1:8000';
+        const nlpServiceUrlEl = document.getElementById('settingNlpServiceUrl');
+        if (nlpServiceUrlEl) nlpServiceUrlEl.value = nlpServiceUrl;
+
+        handleNlpEngineChange(nlpEngine);
       }
     } catch (e) {
       console.error('Error loading settings:', e);
@@ -847,6 +945,103 @@
       document.getElementById('statMaxResultsVal').textContent = `${maxResults} Item`;
     } catch (e) {
       showToast('Gagal menyimpan: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ─── NLP Engine Configuration ───
+  function handleNlpEngineChange(mode) {
+    const help = document.getElementById('nlpEngineHelpText');
+    const urlGroup = document.getElementById('nlpServiceUrlGroup');
+    const statVal = document.getElementById('statNlpEngineVal');
+
+    if (mode === 'nodejs') {
+      if (help) help.textContent = 'Mode Cloud: Pemrosesan sentimen dilakukan 100% oleh Node.js di serverless Vercel. 0 MB PyTorch, super cepat, tanpa perlu membuka terminal Python.';
+      if (statVal) statVal.textContent = 'Bawaan Node.js';
+      if (urlGroup) urlGroup.style.opacity = '0.5';
+    } else if (mode === 'local_pytorch') {
+      if (help) help.textContent = 'Mode PyTorch Lokal: Mengutamakan model IndoBERT Transformer yang berjalan di RAM perangkat Anda via service Python.';
+      if (statVal) statVal.textContent = 'Lokal PyTorch (IndoBERT)';
+      if (urlGroup) urlGroup.style.opacity = '1';
+    } else {
+      if (help) help.textContent = 'Mode Hybrid (Rekomendasi): Menghubungi service PyTorch jika aktif di perangkat Anda, dan otomatis fallback ke Node.js jika laptop offline.';
+      if (statVal) statVal.textContent = 'Otomatis (Hybrid)';
+      if (urlGroup) urlGroup.style.opacity = '1';
+    }
+  }
+
+  async function testNlpServiceConnection() {
+    const btn = document.getElementById('btnTestNlpService');
+    const statusBox = document.getElementById('nlpConnectionStatusBox');
+    const url = (document.getElementById('settingNlpServiceUrl').value || 'http://127.0.0.1:8000').trim();
+
+    btn.disabled = true;
+    statusBox.style.display = 'block';
+    statusBox.style.background = 'rgba(79, 70, 203, 0.08)';
+    statusBox.style.border = '1px solid rgba(79, 70, 203, 0.25)';
+    statusBox.style.color = 'var(--text-main)';
+    statusBox.innerHTML = '<span style="display:inline-block;">⏳</span> Menghubungi service PyTorch di ' + escapeHtml(url) + '...';
+
+    try {
+      const res = await api('/api/settings/test-nlp-service', 'POST', { url });
+      if (res.success && res.status === 'ready') {
+        statusBox.style.background = 'rgba(34, 197, 94, 0.12)';
+        statusBox.style.border = '1px solid rgba(34, 197, 94, 0.35)';
+        statusBox.style.color = '#15803d';
+        statusBox.innerHTML = `<strong>Terhubung ke PyTorch IndoBERT!</strong><br>${escapeHtml(res.message)}`;
+        const statStatus = document.getElementById('statNlpStatusVal');
+        if (statStatus) {
+          statStatus.textContent = 'Online (' + (res.data?.device || 'CPU') + ')';
+          statStatus.style.color = '#15803d';
+        }
+        showToast('Service PyTorch IndoBERT terhubung aktif!', 'success');
+      } else {
+        statusBox.style.background = 'rgba(249, 137, 107, 0.12)';
+        statusBox.style.border = '1px solid rgba(249, 137, 107, 0.35)';
+        statusBox.style.color = '#c2410c';
+        statusBox.innerHTML = `<strong>Service Offline / Belum Aktif</strong><br>${escapeHtml(res.message || 'Tidak ada respons')}`;
+        const statStatus = document.getElementById('statNlpStatusVal');
+        if (statStatus) {
+          statStatus.textContent = 'Fallback Node.js Aktif';
+          statStatus.style.color = 'var(--text-muted)';
+        }
+        showToast('Service PyTorch offline. Fallback leksikon Node.js siap digunakan.', 'info');
+      }
+    } catch (err) {
+      statusBox.style.background = 'rgba(239, 68, 68, 0.12)';
+      statusBox.style.border = '1px solid rgba(239, 68, 68, 0.35)';
+      statusBox.style.color = '#b91c1c';
+      statusBox.innerHTML = `<strong>Gagal Terhubung:</strong> ${escapeHtml(err.message)}`;
+      const statStatus = document.getElementById('statNlpStatusVal');
+      if (statStatus) {
+        statStatus.textContent = 'Fallback Node.js Aktif';
+        statStatus.style.color = 'var(--text-muted)';
+      }
+      showToast('Koneksi gagal: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function saveNlpSettings(event) {
+    event.preventDefault();
+    const btn = document.getElementById('saveNlpButton');
+    const engine = document.getElementById('settingNlpEngine').value;
+    const url = document.getElementById('settingNlpServiceUrl').value;
+
+    btn.disabled = true;
+    try {
+      const res = await api('/api/settings', 'POST', {
+        settings: {
+          nlp_engine: engine,
+          nlp_service_url: url
+        }
+      });
+      showToast(res.message || 'Pengaturan mesin NLP berhasil disimpan!', 'success');
+      handleNlpEngineChange(engine);
+    } catch (err) {
+      showToast('Gagal menyimpan pengaturan NLP: ' + err.message, 'error');
     } finally {
       btn.disabled = false;
     }

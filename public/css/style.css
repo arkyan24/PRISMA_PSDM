@@ -3999,73 +3999,294 @@
   color: var(--text);
 }
 
-/* Upgrade Result Card with Diamond Lattice Watermark & Monitor Aesthetics */
+/* ─── Result Card — Desain Sesuai Spesifikasi Screenshot ─── */
 .result-card {
-  background-color: #ffffff;
-  background-image: 
-    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.024) 0, rgba(0, 0, 0, 0.024) 1px, transparent 1px, transparent 22px),
-    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.024) 0, rgba(0, 0, 0, 0.024) 1px, transparent 1px, transparent 22px);
-  border-radius: 20px;
-  padding: 20px 22px;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  box-shadow: 0 6px 18px -4px rgba(0, 0, 0, 0.04), 0 2px 6px -2px rgba(0, 0, 0, 0.02);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: var(--bg-card, #ffffff);
+  border-radius: 18px;
+  padding: 22px 24px;
+  border: 1px solid var(--border, #e8eaf2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   display: flex;
-  gap: 16px;
+  flex-direction: column;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .result-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 28px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.03);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+  border-color: rgba(99, 102, 241, 0.22);
 }
 
 [data-theme="dark"] .result-card {
-  background-color: #171f2f;
-  background-image: 
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.028) 0, rgba(255, 255, 255, 0.028) 1px, transparent 1px, transparent 22px),
-    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.028) 0, rgba(255, 255, 255, 0.028) 1px, transparent 1px, transparent 22px);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  background-color: #111827;
+  border-color: #1f2937;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-.result-platform-bar {
-  width: 5px;
-  border-radius: 999px;
-  flex-shrink: 0;
+.result-card-body {
+  width: 100%;
 }
 
-.result-title {
-  font-family: var(--font-family);
+.result-card-title {
+  font-family: var(--font-family, 'Gilroy', 'Poppins', sans-serif);
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text, #1e293b);
+  line-height: 1.48;
   margin-bottom: 8px;
-  line-height: 1.35;
   letter-spacing: -0.01em;
 }
 
-.result-title a {
-  color: inherit;
-  text-decoration: none;
-  transition: color var(--transition);
-}
-
-.result-title a:hover {
+.result-read-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: #4f46cb;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.18s ease, transform 0.18s ease;
 }
 
-[data-theme="dark"] .result-title a:hover {
+.result-read-more:hover {
+  color: #3730a3;
+  text-decoration: underline;
+}
+
+[data-theme="dark"] .result-read-more {
   color: #818cf8;
 }
 
-.result-snippet {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-  margin-bottom: 14px;
-  font-weight: 400;
+[data-theme="dark"] .result-read-more:hover {
+  color: #a5b4fc;
+}
+
+.result-card-divider {
+  height: 1px;
+  background: var(--border, #f1f5f9);
+  width: 100%;
+  margin: 16px 0 14px 0;
+}
+
+[data-theme="dark"] .result-card-divider {
+  background: #1f2937;
+}
+
+.result-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.result-badges-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 1. Platform Pill */
+.result-platform-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.result-platform-pill.instagram {
+  background: #fdf2f8;
+  color: #e11d48;
+}
+[data-theme="dark"] .result-platform-pill.instagram {
+  background: rgba(225, 29, 72, 0.15);
+  color: #fb7185;
+}
+
+.result-platform-pill.facebook {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+[data-theme="dark"] .result-platform-pill.facebook {
+  background: rgba(29, 78, 216, 0.15);
+  color: #60a5fa;
+}
+
+.result-platform-pill.twitter {
+  background: #f0f9ff;
+  color: #0284c7;
+}
+[data-theme="dark"] .result-platform-pill.twitter {
+  background: rgba(2, 132, 199, 0.15);
+  color: #38bdf8;
+}
+
+.result-platform-pill.website {
+  background: #ecfdf5;
+  color: #059669;
+}
+[data-theme="dark"] .result-platform-pill.website {
+  background: rgba(5, 150, 105, 0.15);
+  color: #34d399;
+}
+
+/* 2. Keyword Pill */
+.result-keyword-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4f46cb;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+[data-theme="dark"] .result-keyword-pill {
+  background: rgba(79, 70, 203, 0.18);
+  color: #a5b4fc;
+}
+
+/* 3. Sentiment & Confidence Split Capsule */
+.result-sentiment-split {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: 999px;
+  overflow: hidden;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.2;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.sentiment-split-left {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  font-weight: 600;
+}
+
+.sentiment-split-right {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-weight: 600;
+  border-left-width: 1px;
+  border-left-style: solid;
+}
+
+/* Split: Positif */
+.result-sentiment-split.positif {
+  border-color: #86efac;
+}
+.result-sentiment-split.positif .sentiment-split-left {
+  background: #f0fdf4;
+  color: #15803d;
+}
+.result-sentiment-split.positif .sentiment-split-right {
+  background: #bbf7d0;
+  color: #14532d;
+  border-left-color: #86efac;
+}
+[data-theme="dark"] .result-sentiment-split.positif {
+  border-color: rgba(34, 197, 94, 0.35);
+}
+[data-theme="dark"] .result-sentiment-split.positif .sentiment-split-left {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+[data-theme="dark"] .result-sentiment-split.positif .sentiment-split-right {
+  background: rgba(34, 197, 94, 0.28);
+  color: #86efac;
+  border-left-color: rgba(34, 197, 94, 0.35);
+}
+
+/* Split: Negatif */
+.result-sentiment-split.negatif {
+  border-color: #fca5a5;
+}
+.result-sentiment-split.negatif .sentiment-split-left {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+.result-sentiment-split.negatif .sentiment-split-right {
+  background: #fecaca;
+  color: #7f1d1d;
+  border-left-color: #fca5a5;
+}
+[data-theme="dark"] .result-sentiment-split.negatif {
+  border-color: rgba(239, 68, 68, 0.35);
+}
+[data-theme="dark"] .result-sentiment-split.negatif .sentiment-split-left {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+[data-theme="dark"] .result-sentiment-split.negatif .sentiment-split-right {
+  background: rgba(239, 68, 68, 0.28);
+  color: #fca5a5;
+  border-left-color: rgba(239, 68, 68, 0.35);
+}
+
+/* Split: Netral */
+.result-sentiment-split.netral,
+.result-sentiment-split.neutral {
+  border-color: #cbd5e1;
+}
+.result-sentiment-split.netral .sentiment-split-left,
+.result-sentiment-split.neutral .sentiment-split-left {
+  background: #f8fafc;
+  color: #475569;
+}
+.result-sentiment-split.netral .sentiment-split-right,
+.result-sentiment-split.neutral .sentiment-split-right {
+  background: #e2e8f0;
+  color: #1e293b;
+  border-left-color: #cbd5e1;
+}
+[data-theme="dark"] .result-sentiment-split.netral,
+[data-theme="dark"] .result-sentiment-split.neutral {
+  border-color: rgba(148, 163, 184, 0.35);
+}
+[data-theme="dark"] .result-sentiment-split.netral .sentiment-split-left,
+[data-theme="dark"] .result-sentiment-split.neutral .sentiment-split-left {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+}
+[data-theme="dark"] .result-sentiment-split.netral .sentiment-split-right,
+[data-theme="dark"] .result-sentiment-split.neutral .sentiment-split-right {
+  background: rgba(148, 163, 184, 0.28);
+  color: #f1f5f9;
+  border-left-color: rgba(148, 163, 184, 0.35);
+}
+
+/* 4. Time Right */
+.result-time-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 0.80rem;
+  font-weight: 500;
+  margin-left: auto;
+}
+.result-time-dot {
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+[data-theme="dark"] .result-time-dot {
+  color: #475569;
 }
 
 .similar-sources-pill {
@@ -4092,6 +4313,190 @@
   background: rgba(249, 137, 107, 0.22);
   transform: translateY(-1px);
 }
+
+/* 5. Manual Delete Item Button on Finding Cards */
+.btn-delete-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #94a3b8;
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+  line-height: 1.25;
+}
+
+.btn-delete-item svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.btn-delete-item:hover {
+  color: #ef4444;
+  background: #fef2f2;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+}
+
+.btn-delete-item:hover svg {
+  transform: scale(1.1);
+}
+
+.btn-delete-item:active {
+  transform: translateY(0);
+}
+
+[data-theme="dark"] .btn-delete-item {
+  color: #64748b;
+  border-color: rgba(100, 116, 139, 0.25);
+}
+
+[data-theme="dark"] .btn-delete-item:hover {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* 6. Review Mode (Tinjau Temuan) & Batch Deletion ─── */
+.review-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
+  border-radius: 14px;
+  padding: 12px 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.08);
+  animation: slideDownFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] .review-action-bar {
+  background: #1e2433;
+  border-color: rgba(239, 68, 68, 0.35);
+  border-left-color: #ef4444;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.review-action-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-action-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.review-select-all-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text, #1e293b);
+  user-select: none;
+}
+
+.review-divider-dot {
+  color: var(--text-muted, #94a3b8);
+}
+
+.review-selected-counter {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+/* Checkbox inside Result Card */
+.result-card-header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.result-card-checkbox-label {
+  display: none;
+  cursor: pointer;
+  margin-top: 3px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.review-mode-active .result-card-checkbox-label {
+  display: inline-flex;
+}
+
+.result-item-checkbox,
+.review-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #ef4444;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.review-mode-active .result-card {
+  transition: border-color 0.2s ease, background 0.2s ease;
+  cursor: pointer;
+}
+
+.review-mode-active .result-card:hover {
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.review-mode-active .result-card.is-selected {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.03);
+}
+
+[data-theme="dark"] .review-mode-active .result-card.is-selected {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* Button Tinjau Temuan Active State */
+.btn-review-active {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  border-color: #fca5a5 !important;
+}
+
+[data-theme="dark"] .btn-review-active {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.45) !important;
+}
+
+
 
 
 

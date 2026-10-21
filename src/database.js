@@ -4,10 +4,14 @@ const crypto = require('crypto');
 const { AsyncLocalStorage } = require('async_hooks');
 const tenantStorage = new AsyncLocalStorage();
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const os = require('os');
+
+const DATA_DIR = process.env.VERCEL ? path.join(os.tmpdir(), 'prisma_data') : path.join(__dirname, '..', 'data');
 const DB_FILE = path.join(DATA_DIR, 'database.json');
 const TENANTS_DIR = path.join(DATA_DIR, 'tenants');
 const authVault = require('./auth_vault');
+const { clusterAndDeduplicate } = require('./clustering');
+const { analyzeSentimentNLP } = require('./nlp_sentiment');
 
 // ─── Database Structure ───────────────────────────────
 const DEFAULT_DB = {
@@ -15,7 +19,9 @@ const DEFAULT_DB = {
     google_api_key: '',
     google_cx_id: '',
     max_results_per_query: '10',
-    auto_start: '0'
+    auto_start: '0',
+    nlp_engine: 'auto',
+    nlp_service_url: 'http://127.0.0.1:8000'
   },
   monitors: [],    // { id, name, keyword, description, polling_interval, initial_polling_mode, status, created_at, updated_at, last_polled_at, next_poll_at }
   keywords: [],      // { id, keyword, is_active, created_at } — kept for backward compat
@@ -653,6 +659,53 @@ function clearAllResults() {
   save();
 }
 
+function deleteResult(id) {
+  const db = getDb();
+  const numId = parseInt(id, 10);
+  const initialLength = db.results.length;
+  db.results = db.results.filter(r => r.id !== numId && String(r.id) !== String(id));
+  db.results.forEach(r => {
+    if (Array.isArray(r.similar_articles)) {
+      const initSimLen = r.similar_articles.length;
+      r.similar_articles = r.similar_articles.filter(sim => sim.id !== numId && String(sim.id) !== String(id));
+      if (r.similar_articles.length < initSimLen) {
+        r.similar_sources_count = r.similar_articles.length;
+      }
+    }
+  });
+  if (db.results.length < initialLength) {
+    save();
+    return true;
+  }
+  return false;
+}
+
+function deleteResultsBatch(ids) {
+  const db = getDb();
+  if (!Array.isArray(ids) || ids.length === 0) return 0;
+  const idSet = new Set(ids.map(x => String(x)));
+  const numIdSet = new Set(ids.map(x => parseInt(x, 10)).filter(x => !isNaN(x)));
+  
+  const initialLength = db.results.length;
+  db.results = db.results.filter(r => !idSet.has(String(r.id)) && !numIdSet.has(r.id));
+  
+  db.results.forEach(r => {
+    if (Array.isArray(r.similar_articles)) {
+      const initSimLen = r.similar_articles.length;
+      r.similar_articles = r.similar_articles.filter(sim => !idSet.has(String(sim.id)) && !numIdSet.has(sim.id));
+      if (r.similar_articles.length < initSimLen) {
+        r.similar_sources_count = r.similar_articles.length;
+      }
+    }
+  });
+
+  const deletedCount = initialLength - db.results.length;
+  if (deletedCount > 0) {
+    save();
+  }
+  return deletedCount;
+}
+
 function getResultCount() {
   return getDb().results.length;
 }
@@ -879,6 +932,8 @@ module.exports = {
   getResultStats,
   getLatestResults,
   clearAllResults,
+  deleteResult,
+  deleteResultsBatch,
   getResultCount,
   updateResultNarrative,
   updateResultNarrativesBatch,
