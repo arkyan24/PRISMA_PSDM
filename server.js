@@ -12,6 +12,33 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ─── Middleware ───────────────────────────────────────────────
+// Vercel Serverless Path Normalizer: Memulihkan req.url asli bila ditimpa rewrite
+app.use((req, res, next) => {
+  if (
+    req.url === '/server.js' ||
+    req.url === '/api/index.js' ||
+    req.url === '/api' ||
+    req.url.startsWith('/server.js?') ||
+    req.url.startsWith('/api/index.js?') ||
+    req.url.startsWith('/api?')
+  ) {
+    const rawMatched =
+      req.headers['x-matched-path'] ||
+      req.headers['x-forwarded-uri'] ||
+      req.headers['x-original-url'];
+    if (
+      rawMatched &&
+      !rawMatched.includes('server.js') &&
+      !rawMatched.includes('api/index.js')
+    ) {
+      req.url = rawMatched;
+    } else {
+      req.url = '/login';
+    }
+  }
+  next();
+});
+
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -946,7 +973,7 @@ app.get('/:page.html', pageAuthGuard, (req, res) => {
 });
 
 // ─── Start Server ─────────────────────────────────────────────
-if (require.main === module || !process.env.VERCEL) {
+if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`\n══════════════════════════════════════════════════`);
     console.log(`  🔍 Issue Monitor Server`);
