@@ -187,27 +187,39 @@ let _lastSyncTimestamp = 0;
 async function ensureMongoSynced(req) {
   if (!mongo.isMongoEnabled()) return;
 
+  // 1. Identify tenant to sync
+  let tenantToSync = 'psdm.muhammadiyah';
+  if (req && req.headers) {
+    let token = null;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.substring(7).trim();
+    } else if (req.headers.cookie) {
+      const match = req.headers.cookie.match(/(?:^|; )(?:prisma_auth_token|syiar_auth_token|pijar_auth_token)=([^;]*)/);
+      if (match) token = decodeURIComponent(match[1]);
+    }
+
+    if (token) {
+      try {
+        const session = authVault.validateUserSession(token);
+        if (session && session.username) {
+          tenantToSync = session.username;
+        }
+      } catch (e) {}
+    }
+  }
+
   const now = Date.now();
-  if (_mongoInitialSynced && (now - _lastSyncTimestamp < 3000)) {
+  const needsSync = !_mongoInitialSynced || !_tenantDbs[tenantToSync] || (now - _lastSyncTimestamp >= 3000);
+
+  if (!needsSync) {
     return;
   }
   _lastSyncTimestamp = now;
 
-  // 1. Sync Vault (users, sessions)
+  // Sync Vault (users, sessions)
   await authVault.syncVaultWithMongo();
 
-  // 2. Identify tenant to sync
-  let tenantToSync = 'psdm.muhammadiyah';
-  if (req && req.headers && req.headers.cookie) {
-    const match = req.headers.cookie.match(/(?:^|; )(?:prisma_auth_token|syiar_auth_token|pijar_auth_token)=([^;]*)/);
-    if (match) {
-      const token = decodeURIComponent(match[1]);
-      const session = authVault.validateUserSession(token);
-      if (session && session.username) {
-        tenantToSync = session.username;
-      }
-    }
-  }
+  // Sync Tenant DB
   await syncTenantWithMongo(tenantToSync);
   if (tenantToSync !== 'psdm.muhammadiyah') {
     await syncTenantWithMongo('psdm.muhammadiyah');

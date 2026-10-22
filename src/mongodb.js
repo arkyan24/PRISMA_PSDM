@@ -12,33 +12,40 @@ function isMongoEnabled() {
   return !!getUri();
 }
 
-async function getClient() {
+function getClientPromise() {
   const uri = getUri();
   if (!uri) return null;
 
-  if (clientInstance) {
-    return clientInstance;
+  if (global._prismaMongoClientPromise) {
+    return global._prismaMongoClientPromise;
   }
 
-  if (global._prismaMongoClient) {
-    clientInstance = global._prismaMongoClient;
-    return clientInstance;
-  }
+  const client = new MongoClient(uri, {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 8000,
+    connectTimeoutMS: 10000,
+  });
 
-  try {
-    const client = new MongoClient(uri, {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 10000,
+  global._prismaMongoClientPromise = client.connect()
+    .then(c => {
+      console.log('[MongoDB] Connected to MongoDB Atlas successfully.');
+      return c;
+    })
+    .catch(err => {
+      global._prismaMongoClientPromise = null;
+      console.error('[MongoDB] Connection error:', err.message);
+      throw err;
     });
 
-    await client.connect();
-    clientInstance = client;
-    global._prismaMongoClient = client;
-    console.log('[MongoDB] Connected to MongoDB Atlas successfully.');
-    return clientInstance;
+  return global._prismaMongoClientPromise;
+}
+
+async function getClient() {
+  const p = getClientPromise();
+  if (!p) return null;
+  try {
+    return await p;
   } catch (err) {
-    console.error('[MongoDB] Connection error:', err.message);
     return null;
   }
 }
