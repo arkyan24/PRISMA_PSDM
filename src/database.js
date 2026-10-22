@@ -1041,6 +1041,7 @@ migrateKeywordsToMonitors();
 console.log('[DB] Database loaded from', DB_FILE);
 
 module.exports = {
+  getDb,
   getUserProfile,
   updateUserAvatar,
   getSetting,
