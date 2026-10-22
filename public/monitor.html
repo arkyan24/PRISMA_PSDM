@@ -234,7 +234,8 @@
       </div>
       <div class="form-group">
         <label class="form-label" for="monitorDesc">Deskripsi</label>
-        <input type="text" class="form-input" id="monitorDesc" placeholder="Deskripsi singkat tentang tujuan monitoring ini">
+        <input type="text" class="form-input" id="monitorDesc" placeholder="Opsional (Kosongkan untuk deskripsi otomatis)">
+        <p class="form-hint">Default otomatis: "Monitoring isu &lt;instansi&gt; dengan kata kunci &lt;keyword&gt;"</p>
       </div>
       <div class="form-group">
         <label class="form-label" for="monitorInterval">Interval Polling</label>
@@ -391,7 +392,11 @@ function renderMonitors(monitors) {
         <div class="mon-card-body">
           <h3 class="mon-card-title">${escapeHtml(m.name)}</h3>
           <div class="mon-card-tag">#${escapeHtml(tag)}</div>
-          <p class="mon-card-desc">${escapeHtml(m.description || 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.')}</p>
+          <p class="mon-card-desc">${escapeHtml(
+            (m.description && !m.description.includes('Lorem Ipsum'))
+              ? m.description
+              : `Monitoring isu ${localStorage.getItem('prisma_user_institution') || localStorage.getItem('syiar_user_institution') || 'Pusat Syiar Digital Muhammadiyah'} dengan kata kunci ${m.keyword}`
+          )}</p>
         </div>
 
         <!-- Middle Stats Box (Rounded Banner) -->
@@ -594,11 +599,15 @@ async function saveMonitor() {
   btn.innerHTML = '<div class="spinner spinner-sm" style="display:inline-block;"></div> Menyimpan...';
 
   try {
+    const userInst = localStorage.getItem('prisma_user_institution') || localStorage.getItem('syiar_user_institution') || 'Pusat Syiar Digital Muhammadiyah';
+    const defaultDesc = `Monitoring isu ${userInst} dengan kata kunci ${keyword}`;
+    const finalDesc = description || defaultDesc;
+
     if (editId) {
-      const res = await api(`/api/monitors/${editId}`, 'PUT', { name: name || keyword, keyword, description, polling_interval });
+      const res = await api(`/api/monitors/${editId}`, 'PUT', { name: name || keyword, keyword, description: finalDesc, polling_interval });
       showToast(res.message || 'Monitor diperbarui', 'success');
     } else {
-      const res = await api('/api/monitors', 'POST', { name: name || keyword, keyword, description, polling_interval });
+      const res = await api('/api/monitors', 'POST', { name: name || keyword, keyword, description: finalDesc, polling_interval });
       showToast(res.message || 'Monitor dibuat', 'success');
     }
     closeModal();

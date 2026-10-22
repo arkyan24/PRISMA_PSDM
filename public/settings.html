@@ -315,7 +315,7 @@
               <div>
                 <strong>Lupa Password?</strong>
                 <p style="margin-top:3px; font-size:0.79rem; color:var(--text-muted); line-height:1.45;">
-                  Hubungi tim Administrator Pusat PSDM Muhammadiyah di Kauman, Yogyakarta atau melalui surel resmi <strong>psdm@muhammadiyah.id</strong> untuk proses verifikasi reset.
+                  Hubungi tim Administrator PRISMA, Yogyakarta atau melalui surel resmi <strong>developpsdm@gmail.com</strong> untuk proses verifikasi reset.
                 </p>
               </div>
             </div>
@@ -476,91 +476,112 @@
             </form>
           </div>
 
-          <!-- Section C: Mesin Analisis Sentimen NLP (Node.js Cloud vs PyTorch Lokal) -->
+          <!-- Section C: Optimasi Mesin Analisis Sentimen NLP (Segera Hadir / Terkunci) -->
           <div class="settings-inner-section">
-            <div class="settings-inner-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#4f46cb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2a4 4 0 0 1 4 4c0 1.1-.4 2.1-1.1 2.8l2.7 2.7c1.4-1 3.4-.8 4.6.4 1.4 1.4 1.4 3.6 0 5s-3.6 1.4-5 0c-1.2-1.2-1.4-3.2-.4-4.6l-2.7-2.7C9.4 10.3 8.4 10.7 7.3 10.7 5.1 10.7 3.3 8.9 3.3 6.7S5.1 2.7 7.3 2.7c1.1 0 2.1.4 2.8 1.1L12 2z"></path>
-                <circle cx="12" cy="18" r="3"></circle>
-              </svg>
-              Mesin Analisis Sentimen NLP
+            <div class="settings-inner-title" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#4f46cb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a4 4 0 0 1 4 4c0 1.1-.4 2.1-1.1 2.8l2.7 2.7c1.4-1 3.4-.8 4.6.4 1.4 1.4 1.4 3.6 0 5s-3.6 1.4-5 0c-1.2-1.2-1.4-3.2-.4-4.6l-2.7-2.7C9.4 10.3 8.4 10.7 7.3 10.7 5.1 10.7 3.3 8.9 3.3 6.7S5.1 2.7 7.3 2.7c1.1 0 2.1.4 2.8 1.1L12 2z"></path>
+                  <circle cx="12" cy="18" r="3"></circle>
+                </svg>
+                <span>Optimasi Mesin Analisis Sentimen NLP</span>
+              </div>
+              <span style="display:inline-flex; align-items:center; gap:6px; background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.28); padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:700; letter-spacing:0.3px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Segera Hadir
+              </span>
             </div>
             <div class="settings-inner-desc">Pilih mesin klasifikasi: Bawaan Node.js (Vercel Cloud Ringan) atau PyTorch IndoBERT (Opsional di Perangkat Lokal)</div>
 
-            <!-- NLP Status Pill Banner -->
-            <div class="mon-stats-card active" style="margin-bottom:16px;">
-              <div class="mon-stat-cell">
-                <span class="mon-stat-lbl">Mode Aktif</span>
-                <span class="mon-stat-val" id="statNlpEngineVal">Otomatis (Hybrid)</span>
-              </div>
-              <div class="mon-stat-cell">
-                <span class="mon-stat-lbl">Default Cloud</span>
-                <span class="mon-stat-val">Node.js Lexicon</span>
-              </div>
-              <div class="mon-stat-cell">
-                <span class="mon-stat-lbl">Beban Vercel</span>
-                <span class="mon-stat-val" style="color:var(--positive);">0 MB PyTorch</span>
-              </div>
-              <div class="mon-stat-cell">
-                <span class="mon-stat-lbl">Status Service</span>
-                <span class="mon-stat-val" id="statNlpStatusVal" style="font-size:0.75rem;">Siap (Fallback Aktif)</span>
+            <!-- Lock Notice Banner -->
+            <div class="settings-info-box" style="margin-top:12px; margin-bottom:14px; border:1px dashed rgba(239,68,68,0.4); background:rgba(239,68,68,0.04);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px; flex-shrink:0;">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <div style="font-size:0.78rem; line-height:1.45; color:var(--text);">
+                <strong>Fitur Terkunci (Segera Hadir):</strong> Modul Optimasi Mesin Analisis Sentimen NLP tingkat lanjut ini sedang dikunci untuk persiapan pembaruan berikutnya. Sistem saat ini berjalan optimal secara otomatis menggunakan engine NLP bawaan cloud.
               </div>
             </div>
 
-            <form id="nlpSettingsForm" onsubmit="saveNlpSettings(event)">
-              <!-- Pilihan Mode NLP -->
-              <div class="form-group" style="margin-bottom:14px;">
-                <label class="form-label" for="settingNlpEngine">Mode Pemrosesan Sentimen</label>
-                <select class="form-input" id="settingNlpEngine" onchange="handleNlpEngineChange(this.value)">
-                  <option value="auto">🟢 Otomatis / Hybrid (Coba PyTorch Lokal, Fallback ke Node.js)</option>
-                  <option value="nodejs">⚡ Bawaan Node.js (Cloud Mode — Ringan, 0 MB PyTorch, Tanpa Instal Apapun)</option>
-                  <option value="local_pytorch">🧠 Lokal PyTorch (IndoBERT Transformer via Service Python)</option>
-                </select>
-                <span class="avatar-hint-text" style="margin-top:6px; display:block;" id="nlpEngineHelpText">
-                  Secara default, jika service Python lokal tidak aktif, aplikasi otomatis memakai analisis Node.js tanpa memicu error.
-                </span>
-              </div>
-
-              <!-- URL Service Python / PyTorch -->
-              <div class="form-group" id="nlpServiceUrlGroup" style="margin-bottom:14px;">
-                <label class="form-label" for="settingNlpServiceUrl">URL Service PyTorch / IndoBERT</label>
-                <div style="display:flex; gap:8px;">
-                  <input class="form-input" type="text" id="settingNlpServiceUrl" placeholder="http://127.0.0.1:8000" value="http://127.0.0.1:8000" style="flex:1;">
-                  <button type="button" class="btn btn-secondary" id="btnTestNlpService" onclick="testNlpServiceConnection()" style="padding:8px 14px; font-size:0.8rem; white-space:nowrap;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
-                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                    </svg>
-                    Uji Koneksi
-                  </button>
+            <!-- Locked Content Wrapper -->
+            <div style="opacity:0.62; pointer-events:none; user-select:none; filter:grayscale(0.1);">
+              <!-- NLP Status Pill Banner -->
+              <div class="mon-stats-card active" style="margin-bottom:16px;">
+                <div class="mon-stat-cell">
+                  <span class="mon-stat-lbl">Mode Aktif</span>
+                  <span class="mon-stat-val" id="statNlpEngineVal">Otomatis (Hybrid)</span>
                 </div>
-                <div id="nlpConnectionStatusBox" style="display:none; margin-top:8px; padding:10px 12px; border-radius:10px; font-size:0.78rem; line-height:1.45;"></div>
-              </div>
-
-              <!-- Info Box Panduan Lokal User -->
-              <div class="settings-info-box" style="margin-bottom:14px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <div style="font-size:0.78rem;">
-                  <strong>Panduan Menjalankan PyTorch di Laptop Anda (Opsional):</strong>
-                  <p style="margin-top:3px; color:var(--text-muted); line-height:1.45;">
-                    • <strong>Localhost</strong>: Jalankan perintah <code>python sentiment_service/app.py</code> di terminal laptop Anda.<br>
-                    • <strong>Di Vercel Hosting</strong>: Hubungkan laptop Anda via tunnel (contoh: <code>ngrok http 8000</code>) lalu masukkan URL ngrok di atas, atau cukup gunakan mode <strong>Bawaan Node.js</strong> tanpa instal apapun di komputer.
-                  </p>
+                <div class="mon-stat-cell">
+                  <span class="mon-stat-lbl">Default Cloud</span>
+                  <span class="mon-stat-val">Node.js Lexicon</span>
+                </div>
+                <div class="mon-stat-cell">
+                  <span class="mon-stat-lbl">Beban Vercel</span>
+                  <span class="mon-stat-val" style="color:var(--positive);">0 MB PyTorch</span>
+                </div>
+                <div class="mon-stat-cell">
+                  <span class="mon-stat-lbl">Status Service</span>
+                  <span class="mon-stat-val" id="statNlpStatusVal" style="font-size:0.75rem;">Siap (Fallback Aktif)</span>
                 </div>
               </div>
 
-              <button class="btn btn-primary" id="saveNlpButton" type="submit" style="width:100%; justify-content:center; padding:11px 18px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                  <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
-                Simpan Pengaturan NLP
-              </button>
-            </form>
+              <form id="nlpSettingsForm" onsubmit="saveNlpSettings(event)">
+                <!-- Pilihan Mode NLP -->
+                <div class="form-group" style="margin-bottom:14px;">
+                  <label class="form-label" for="settingNlpEngine">Mode Pemrosesan Sentimen</label>
+                  <select class="form-input" id="settingNlpEngine" onchange="handleNlpEngineChange(this.value)" disabled>
+                    <option value="auto">🟢 Otomatis / Hybrid (Coba PyTorch Lokal, Fallback ke Node.js)</option>
+                    <option value="nodejs">⚡ Bawaan Node.js (Cloud Mode — Ringan, 0 MB PyTorch, Tanpa Instal Apapun)</option>
+                    <option value="local_pytorch">🧠 Lokal PyTorch (IndoBERT Transformer via Service Python)</option>
+                  </select>
+                  <span class="avatar-hint-text" style="margin-top:6px; display:block;" id="nlpEngineHelpText">
+                    Mode Hybrid (Rekomendasi): Menghubungi service PyTorch jika aktif di perangkat Anda, dan otomatis fallback ke Node.js jika laptop offline.
+                  </span>
+                </div>
+
+                <!-- URL Service Python / PyTorch -->
+                <div class="form-group" id="nlpServiceUrlGroup" style="margin-bottom:14px;">
+                  <label class="form-label" for="settingNlpServiceUrl">URL Service PyTorch / IndoBERT</label>
+                  <div style="display:flex; gap:8px;">
+                    <input class="form-input" type="text" id="settingNlpServiceUrl" placeholder="http://127.0.0.1:8000" value="http://127.0.0.1:8000" style="flex:1;" disabled>
+                    <button type="button" class="btn btn-secondary" id="btnTestNlpService" disabled style="padding:8px 14px; font-size:0.8rem; white-space:nowrap; opacity:0.7;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                      </svg>
+                      Uji Koneksi
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Info Box Panduan Lokal User -->
+                <div class="settings-info-box" style="margin-bottom:14px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <div style="font-size:0.78rem;">
+                    <strong>Panduan Menjalankan PyTorch di Laptop Anda (Opsional):</strong>
+                    <p style="margin-top:3px; color:var(--text-muted); line-height:1.45;">
+                      • <strong>Localhost</strong>: Jalankan perintah <code>python sentiment_service/app.py</code> di terminal laptop Anda.<br>
+                      • <strong>Di Vercel Hosting</strong>: Hubungkan laptop Anda via tunnel (contoh: <code>ngrok http 8000</code>) lalu masukkan URL ngrok di atas, atau cukup gunakan mode <strong>Bawaan Node.js</strong> tanpa instal apapun di komputer.
+                    </p>
+                  </div>
+                </div>
+
+                <button class="btn btn-primary" id="saveNlpButton" type="button" disabled style="width:100%; justify-content:center; padding:11px 18px; opacity:0.7; cursor:not-allowed;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  Terkunci (Segera Hadir)
+                </button>
+              </form>
+            </div>
           </div>
 
           <!-- Section D: Zona Bahaya & Hapus Data -->

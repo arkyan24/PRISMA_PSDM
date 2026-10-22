@@ -450,7 +450,9 @@ app.post('/api/monitors', async (req, res) => {
     if (!keyword || !keyword.trim()) {
       return res.status(400).json({ success: false, message: 'Keyword tidak boleh kosong' });
     }
-    const monitor = db.createMonitor({ name, keyword, description, polling_interval, initial_polling_mode });
+    const userProfile = req.user ? db.getUserProfile(req.user.username) : null;
+    const institution = userProfile?.institution || req.user?.institution;
+    const monitor = db.createMonitor({ name, keyword, description, polling_interval, initial_polling_mode, institution });
     
     // Start timer if scheduler is running
     const status = scheduler.getStatus();

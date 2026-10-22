@@ -298,7 +298,7 @@ function getAllSettings() {
 }
 
 // ─── Monitors ─────────────────────────────────────────
-function createMonitor({ name, keyword, description, polling_interval, initial_polling_mode }) {
+function createMonitor({ name, keyword, description, polling_interval, initial_polling_mode, institution }) {
   const db = getDb();
   const trimmedKeyword = keyword.trim();
   const trimmedName = (name || trimmedKeyword).trim();
@@ -316,11 +316,27 @@ function createMonitor({ name, keyword, description, polling_interval, initial_p
   const now = new Date().toISOString();
   const interval = parseInt(polling_interval) || 3;
 
+  // Nama instansi terdaftar (bukan username)
+  const activeTenant = getActiveTenantName();
+  let instName = institution;
+  if (!instName) {
+    try {
+      const userProfile = getUserProfile(activeTenant);
+      instName = userProfile?.institution;
+    } catch (e) {}
+  }
+  if (!instName) {
+    instName = db.profile?.institution || 'Pusat Syiar Digital Muhammadiyah';
+  }
+
+  const defaultDesc = `Monitoring isu ${instName} dengan kata kunci ${trimmedKeyword}`;
+  const finalDesc = (description && description.trim()) ? description.trim() : defaultDesc;
+
   const monitor = {
     id,
     name: trimmedName,
     keyword: trimmedKeyword,
-    description: (description || '').trim(),
+    description: finalDesc,
     polling_interval: interval,
     initial_polling_mode: initial_polling_mode || 'today',
     status: 'active',
