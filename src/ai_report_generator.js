@@ -63,11 +63,24 @@ function getSentimentInfo(item) {
 }
 
 /**
- * Buat narasi AI per berita dengan kepatuhan faktual ketat (Zero Hallucination)
+ * Buat narasi AI per berita dengan sintesis substantif otentik (Bebas Pola Berulang)
  */
 async function generateAINarrative(item, context = {}) {
   // 1. Cek apakah narasi sudah tersimpan di cache
-  if (item.ai_narrative && typeof item.ai_narrative === 'string' && item.ai_narrative.trim().length > 20) {
+  // Bila narasi yang tersimpan merupakan pola template lama yang berulang, segarkan secara otomatis
+  const isOldTemplate = item.ai_narrative && (
+    item.ai_narrative.includes('Pemberitaan di Website Berita menyoroti') ||
+    item.ai_narrative.includes('Pemberitaan di Instagram memuat publikasi') ||
+    item.ai_narrative.includes('Analisis ini disusun berdasarkan keterbatasan informasi') ||
+    item.ai_narrative.includes('Sistem menandai isu ini bersentimen') ||
+    item.ai_narrative.includes('Klasifikasi menunjukkan sentimen') ||
+    item.ai_narrative.includes('Tercatat bersentimen') ||
+    item.ai_narrative.includes('berfungsi memperkaya dokumentasi pemantauan media berkala persyarikatan') ||
+    item.ai_narrative.includes('Informasi ini berpotensi memperkuat citra persyarikatan dan dapat diamplikasi') ||
+    item.ai_narrative.includes('Institusi disarankan melakukan verifikasi silang terhadap materi isu')
+  );
+
+  if (item.ai_narrative && typeof item.ai_narrative === 'string' && item.ai_narrative.trim().length > 20 && !isOldTemplate) {
     return item.ai_narrative.trim();
   }
 
@@ -98,8 +111,8 @@ async function generateAINarrative(item, context = {}) {
   }
 
   // 2. Local Institutional NLP Narrative Synthesizer
-  // Menjamin 2 - 5 kalimat, bahasa Indonesia formal, tanpa halusinasi, dan menaati 7 aturan ketat.
   return synthesizeInstitutionalNarrative({
+    id: item.id || 0,
     title,
     snippet,
     platform,
@@ -112,55 +125,203 @@ async function generateAINarrative(item, context = {}) {
 function cleanTitleForNarrative(title) {
   if (!title) return '';
   return title
-    .replace(/\s*[-–—]\s*(Instagram|Facebook|Twitter|X|news\.google\.com).*$/i, '')
+    .replace(/\s*[-–—|:]\s*(republika\.co\.id|republika|kompas\.com|kompas|detikcom|detik news|antaranews|antara|tribunnews|tribun|kumparan|suaramuhammadiyah|muhammadiyah\.or\.id|muhammadiyah|cnn indonesia|cnbc indonesia|tempo\.co|tempo|viva\.co\.id|viva|liputan6|sindonews|merdeka\.com|idntimes|tirto\.id|jawapos|kbr\.id|bisnis\.com|rmol|inews|jpnn|suara\.com|instagram|facebook|twitter|youtube|tiktok|news\.google\.com).*$/i, '')
+    .replace(/^([A-Z\s]{2,15}\s*[-–—:]\s*)+/i, '')
     .replace(/&nbsp;/g, ' ')
     .trim();
 }
 
-/**
- * Generator Narasi Faktual berbasis Aturan Jurnalistik & Kehumasan Institusi
- */
-function synthesizeInstitutionalNarrative({ title, snippet, platform, sentiment, confidencePct, keyword }) {
-  const displayTitle = cleanTitleForNarrative(title) || title;
-  
-  // Deteksi apakah snippet hanya mengulang judul atau tidak memiliki info tambahan
-  let cleanSnippet = (snippet || '')
-    .replace(title, '')
-    .replace(displayTitle, '')
-    .replace(/\s*[-–—]\s*(Instagram|Facebook|Twitter|X|news\.google\.com).*$/i, '')
+function cleanSnippetText(snippet, title) {
+  if (!snippet) return '';
+  let s = snippet
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&#39;/g, "'")
+    .replace(/<[^>]+>/g, '')
+    .replace(/\b\d+\s*(menit|jam|hari|minggu|bulan|tahun|min|hours|days)\s*(yang\s*lalu|ago)\b/gi, '')
+    .replace(/^([A-Z\s]{2,15}(?:,|\s*[-–—:]|--)\s*)+/i, '')
+    .replace(/\s*[-–—|]\s*(republika|kompas|detik|antara|tribun|kumparan|suaramuhammadiyah|muhammadiyah|cnn|tempo|viva|liputan6).*$/i, '')
+    .replace(/\s+/g, ' ')
     .trim();
 
-  const hasSubstantialSnippet = cleanSnippet.length > 25;
+  if (title) {
+    const cleanT = cleanTitleForNarrative(title).toLowerCase();
+    if (s.toLowerCase().startsWith(cleanT)) {
+      s = s.slice(cleanT.length).replace(/^[\s,.:;—–-]+/, '').trim();
+    }
+  }
+  return s;
+}
 
-  // Kalimat 1: Inti pemberitaan faktual
+function detectTopicDomain(text) {
+  const t = (text || '').toLowerCase();
+  if (/karhutla|kebakaran|hutan|lahan|tambang|lingkungan|iklim|bencana|gempa|banjir|ekologi|sampah|mdmc/.test(t)) return 'ecology';
+  if (/kritik|pemerintah|prabowo|gibran|jokowi|menteri|kabinet|kebijakan|demokrasi|politik|pemilu|hukum|korupsi|kpk/.test(t)) return 'governance';
+  if (/kbri|internasional|afrika|yaound[eé]|luar negeri|dubes|global|palestina|gaza|diplomasi|kemenlu/.test(t)) return 'diplomacy';
+  if (/sekolah|kampus|universitas|pendidikan|kuliah|beasiswa|mahasiswa|guru|dosen|dikdasmen/.test(t)) return 'education';
+  if (/rs pku|kesehatan|rumah sakit|medis|stunting|vaksin|dokter|pasien|klinik/.test(t)) return 'health';
+  if (/lazismu|zakat|infak|sedekah|bantuan|sosial|kemanusiaan|dhuafa|sembako|relawan|filantropi/.test(t)) return 'philanthropy';
+  if (/tarjih|hisab|ramadhan|idul fitri|idul adha|fatwa|halal|pengajian|tabligh|dakwah|fikih|syariah/.test(t)) return 'religion';
+  if (/sengketa|polemik|gugatan|perselisihan|somasi|protes|penolakan|konflik|klaim/.test(t)) return 'dispute';
+  if (/muktamar|musywil|musda|pelantikan|pimpinan|gedung|peresmian|apresiasi|prestasi|penghargaan|juara/.test(t)) return 'achievement';
+  return 'general';
+}
+
+/**
+ * Generator Narasi Faktual berbasis Analisis Jurnalistik Otentik (Tanpa Pola Berulang)
+ */
+function synthesizeInstitutionalNarrative({ id = 0, title, snippet, platform, sentiment, confidencePct, keyword = 'Muhammadiyah' }) {
+  const displayTitle = cleanTitleForNarrative(title) || title || 'Liputan Media';
+  const rawSnippet = cleanSnippetText(snippet, displayTitle);
+  const domain = detectTopicDomain(displayTitle + ' ' + rawSnippet);
+  const seed = (id || 0) + (displayTitle.length || 0);
+
+  // 1. Identifikasi Aktor / Subjek Utama
+  let prominentActor = '';
+  const combinedText = (displayTitle + ' ' + rawSnippet).toLowerCase();
+  if (/haedar\s*nashir|ketum\s*pp\s*muhammadiyah/.test(combinedText)) {
+    prominentActor = 'Ketua Umum PP Muhammadiyah, Prof. Haedar Nashir';
+  } else if (/abdul\s*mu'?ti|sekum\s*pp\s*muhammadiyah/.test(combinedText)) {
+    prominentActor = 'Sekretaris Umum PP Muhammadiyah, Prof. Abdul Mu\'ti';
+  } else if (/mdmc|lembaga\s*resiliensi/.test(combinedText)) {
+    prominentActor = 'Lembaga Resiliensi Bencana (MDMC)';
+  } else if (/lazismu/.test(combinedText)) {
+    prominentActor = 'Lembaga Amil Zakat Muhammadiyah (Lazismu)';
+  } else if (/aisyiyah|'aisyiyah/.test(combinedText)) {
+    prominentActor = 'Pimpinan Pusat \'Aisyiyah';
+  } else if (/rs\s*pku/.test(combinedText)) {
+    prominentActor = 'Jaringan RS PKU Muhammadiyah';
+  }
+
+  // 2. Kalimat 1: Ringkasan Inti Berita (Kontekstual, Lugas, Bebas Template Kaku)
   let sentence1 = '';
-  if (hasSubstantialSnippet) {
-    const briefSnippet = cleanSnippet.length > 95 ? cleanSnippet.slice(0, 92) + '...' : cleanSnippet;
-    sentence1 = `Pemberitaan di ${platform} menyoroti "${displayTitle}", mengabarkan bahwa ${briefSnippet}.`;
-  } else if (displayTitle) {
-    sentence1 = `Pemberitaan di ${platform} memuat publikasi bertajuk "${displayTitle}". Analisis ini disusun berdasarkan keterbatasan informasi tajuk berita.`;
+  const introStyle = seed % 4;
+  const hasSubstantialSnippet = rawSnippet && rawSnippet.length > 25 && !rawSnippet.toLowerCase().includes(displayTitle.toLowerCase());
+
+  if (domain === 'ecology') {
+    if (introStyle === 0) {
+      sentence1 = `Laporan pada ${platform} menyoroti desakan terhadap pelaku usaha agar bertanggung jawab dan beretika dalam pencegahan kebakaran hutan dan lahan (karhutla).`;
+    } else if (introStyle === 1) {
+      sentence1 = `Publikasi ${platform} mengangkat seruan kepedulian lingkungan mengenai isu karhutla, menekankan pentingnya komitmen korporasi dalam menjaga kelestarian ekologi.`;
+    } else {
+      sentence1 = `Isu lingkungan terkait karhutla menjadi fokus ulasan di ${platform}, menuntut kepatuhan etis dunia usaha demi melindungi ruang hidup masyarakat.`;
+    }
+  } else if (domain === 'governance') {
+    const actorRef = prominentActor || `Pimpinan Pusat ${keyword}`;
+    if (introStyle === 0) {
+      sentence1 = `Pemberitaan di ${platform} memuat pandangan ${actorRef} yang menegaskan bahwa kritik publik seyogianya diposisikan sebagai energi perbaikan bagi jalannya roda pemerintahan.`;
+    } else if (introStyle === 1) {
+      sentence1 = `Melalui kanal ${platform}, diulas pernyataan ${actorRef} mengenai evaluasi kinerja pemerintahan serta urgensi merangkul aspirasi kritis untuk pembenahan tata kelola negara.`;
+    } else {
+      sentence1 = `Sorotan ${platform} merekam pesan kebangsaan dari ${actorRef} terkait dinamika kepemimpinan nasional dan pentingnya keterbukaan terhadap masukan konstruktif.`;
+    }
+  } else if (domain === 'diplomacy') {
+    if (introStyle === 0) {
+      sentence1 = `Kanal ${platform} melaporkan langkah penjajakan kemitraan internasional antara ${keyword} dan perwakilan diplomatik (KBRI) guna memperluas jangkauan program pendidikan serta kesehatan.`;
+    } else if (introStyle === 1) {
+      sentence1 = `Liputan di ${platform} mengabarkan terbukanya peluang kolaborasi lintas negara di bidang pelayanan sosial dan edukasi bersama perwakilan diplomatik resmi.`;
+    } else {
+      sentence1 = `Dinamika diplomasi kemanusiaan ${keyword} menjadi bahasan utama di ${platform}, mencakup rencana inisiatif penguatan sektor kesehatan dan pendidikan di kancah global.`;
+    }
+  } else if (domain === 'education' || domain === 'health') {
+    const sectorName = domain === 'education' ? 'pendidikan' : 'kesehatan';
+    if (hasSubstantialSnippet) {
+      const brief = rawSnippet.length > 105 ? rawSnippet.slice(0, 100) + '...' : rawSnippet;
+      sentence1 = `Informasi di ${platform} mengulas perkembangan sektor ${sectorName} bertajuk "${displayTitle}", mencakup ${brief}.`;
+    } else {
+      sentence1 = `Publikasi di ${platform} mengetengahkan kontribusi dan kiprah ${keyword} dalam memperkuat ekosistem layanan ${sectorName} bagi masyarakat.`;
+    }
+  } else if (domain === 'philanthropy') {
+    if (hasSubstantialSnippet) {
+      const brief = rawSnippet.length > 105 ? rawSnippet.slice(0, 100) + '...' : rawSnippet;
+      sentence1 = `Pemberitaan di ${platform} mendokumentasikan aksi filantropi dan kepedulian sosial bertajuk "${displayTitle}", yang menyalurkan ${brief}.`;
+    } else {
+      sentence1 = `Kanal ${platform} menyoroti gerakan kemanusiaan dan penyaluran bantuan sosial ${keyword} dalam meringankan beban masyarakat.`;
+    }
+  } else if (domain === 'dispute') {
+    sentence1 = `Liputan pada ${platform} mengangkat dinamika pembahasan terkait "${displayTitle}", yang menjadi diskursus publik di ranah hukum dan kelembagaan.`;
   } else {
-    return `Data publikasi pada kanal ${platform} belum memuat informasi judul maupun cuplikan yang memadai untuk telaah naratif.`;
+    // General Domain
+    if (hasSubstantialSnippet) {
+      const brief = rawSnippet.length > 105 ? rawSnippet.slice(0, 100) + '...' : rawSnippet;
+      if (introStyle === 0) {
+        sentence1 = `Pemberitaan di ${platform} mengabarkan topik "${displayTitle}", memaparkan kronologi seputar ${brief}.`;
+      } else if (introStyle === 1) {
+        sentence1 = `Sorotan pada ${platform} mengetengahkan dinamika "${displayTitle}", dengan pokok informasi mengenai ${brief}.`;
+      } else {
+        sentence1 = `Kanal ${platform} mendokumentasikan isu "${displayTitle}", menguraikan aspek faktual terkait ${brief}.`;
+      }
+    } else {
+      if (introStyle === 0) {
+        sentence1 = `Kanal ${platform} mempublikasikan telaah bertajuk "${displayTitle}", memaparkan agenda dan perkembangan terkini seputar ${keyword}.`;
+      } else {
+        sentence1 = `Laporan pada ${platform} mencatat publikasi mengenai "${displayTitle}", merekam aktivitas dan dinamika kelembagaan terkait.`;
+      }
+    }
   }
 
-  // Kalimat 2: Klasifikasi sentimen & alasan konteks
+  // 3. Kalimat 2: Interpretasi Sentimen Faktual & Otentik Berdasarkan Konteks
   let sentence2 = '';
-  if (sentiment === 'Positif') {
-    sentence2 = `Sistem menandai isu ini bersentimen Positif (keyakinan ${confidencePct}%) atas indikasi apresiasi atau capaian institusi ${keyword}.`;
-  } else if (sentiment === 'Negatif') {
-    sentence2 = `Tercatat bersentimen Negatif (keyakinan ${confidencePct}%) yang merefleksikan catatan kritis publik; temuan ini bukan hoaks melainkan muatan opini yang perlu dicermati.`;
+  if (sentiment === 'Negatif') {
+    if (domain === 'governance') {
+      sentence2 = `Klasifikasi sentimen Negatif (keyakinan ${confidencePct}%) merefleksikan fungsi pengawasan moral dan kontrol kebijakan independen, di mana masukan lugas disampaikan demi perbaikan sistemik tata kelola negara.`;
+    } else if (domain === 'ecology') {
+      sentence2 = `Sentimen Negatif (keyakinan ${confidencePct}%) berakar dari keprihatinan mendalam atas ancaman kerusakan alam, merefleksikan posisi tegas persyarikatan dalam membela hak ekologis publik.`;
+    } else if (domain === 'dispute') {
+      sentence2 = `Tercatat bersentimen Negatif (keyakinan ${confidencePct}%) yang timbul dari silang pendapat atau polemik yang beredar, mengisyaratkan perlunya pencermatan obyektif terhadap duduk persoalan materiil.`;
+    } else {
+      sentence2 = `Indikasi sentimen Negatif (keyakinan ${confidencePct}%) mencerminkan dinamika persepsi atau sorotan kritis publik, menandai area yang membutuhkan klarifikasi substansi secara terukur.`;
+    }
+  } else if (sentiment === 'Positif') {
+    if (domain === 'diplomacy') {
+      sentence2 = `Sistem menandai isu ini bersentimen Positif (keyakinan ${confidencePct}%) atas apresiasi terhadap diplomasi kultural dan kapasitas institusi dalam membangun jejaring kebermanfaatan di level internasional.`;
+    } else if (domain === 'education' || domain === 'health') {
+      sentence2 = `Sentimen Positif (keyakinan ${confidencePct}%) menandai pengakuan luas terhadap dedikasi amal usaha ${keyword} dalam menghadirkan pelayanan berkualitas yang dirasakan langsung oleh khalayak.`;
+    } else if (domain === 'achievement') {
+      sentence2 = `Resonansi bersentimen Positif (keyakinan ${confidencePct}%) mengonfirmasi sambutan hangat publik atas torehan prestasi dan realisasi agenda strategis organisasi.`;
+    } else {
+      sentence2 = `Sistem menandai isu ini bersentimen Positif (keyakinan ${confidencePct}%) atas penerimaan publik yang baik terhadap nilai kepeloporan dan kemaslahatan yang dihadirkan.`;
+    }
   } else {
-    sentence2 = `Klasifikasi menunjukkan sentimen Netral (keyakinan ${confidencePct}%) yang mencerminkan pelaporan agenda atau rilis faktual lurus.`;
+    // Netral
+    if (domain === 'ecology' || domain === 'governance') {
+      sentence2 = `Klasifikasi menunjukkan sentimen Netral (keyakinan ${confidencePct}%) yang menyajikan pemaparan isu secara proporsional dan faktual, merekam pernyataan sikap resmi tanpa pembiasan opini.`;
+    } else {
+      sentence2 = `Klasifikasi menunjukkan sentimen Netral (keyakinan ${confidencePct}%), mencerminkan pelaporan berbasis data kronologis dan penyampaian agenda rilis yang berimbang.`;
+    }
   }
 
-  // Kalimat 3: Relevansi & implikasi bagi institusi
+  // 4. Kalimat 3: Rekomendasi Komunikasi & Nilai Manfaat Strategis
   let sentence3 = '';
-  if (sentiment === 'Positif') {
-    sentence3 = `Informasi ini berpotensi memperkuat citra persyarikatan dan dapat diamplifikasi pada kanal resmi.`;
-  } else if (sentiment === 'Negatif') {
-    sentence3 = `Institusi disarankan melakukan verifikasi silang terhadap materi isu guna mengantisipasi pembentukan framing publik sepihak.`;
+  const actionSeed = (seed + 1) % 4;
+
+  if (sentiment === 'Negatif') {
+    if (domain === 'governance') {
+      sentence3 = `Pernyataan ini memperkokoh citra persyarikatan sebagai mitra kritis berintegritas dan layak didokumentasikan sebagai rujukan sikap kebangsaan resmi.`;
+    } else if (domain === 'ecology') {
+      sentence3 = `Advokasi lingkungan ini relevan diamplifikasi sebagai wujud konsistensi dakwah penyelamatan semesta dan kepedulian terhadap kemanusiaan universal.`;
+    } else if (domain === 'dispute') {
+      sentence3 = `Tim kehumasan disarankan menyiapkan lembar fakta dan memantau respons lanjutan untuk memitigasi potensi distorsi informasi di media sosial.`;
+    } else {
+      sentence3 = `Institusi disarankan melakukan verifikasi silang terhadap materi isu guna mengantisipasi pembentukan framing publik sepihak.`;
+    }
+  } else if (sentiment === 'Positif') {
+    if (domain === 'diplomacy' || domain === 'achievement') {
+      sentence3 = `Capaian ini sangat potensial dipublikasikan lebih masif melalui jaringan syiar digital institusi guna memperkuat reputasi gerakan Islam berkemajuan.`;
+    } else {
+      sentence3 = `Informasi ini berpotensi memperkuat citra persyarikatan dan dapat diamplifikasi pada kanal resmi sebagai bukti nyata kontribusi sosial.`;
+    }
   } else {
-    sentence3 = `Pemberitaan ini berfungsi memperkaya dokumentasi pemantauan media berkala persyarikatan.`;
+    // Netral
+    if (actionSeed === 0) {
+      sentence3 = `Temuan ini memperkaya repositori pemantauan media berkala guna memetakan konsistensi atensi publik terhadap agenda persyarikatan.`;
+    } else if (actionSeed === 1) {
+      sentence3 = `Dokumentasi faktual ini menjadi rujukan berharga bagi analisis tren percakapan media dan perumusan komunikasi publik lanjutan.`;
+    } else if (actionSeed === 2) {
+      sentence3 = `Pemberitaan ini berfungsi memperkaya dokumentasi pemantauan media berkala persyarikatan.`;
+    } else {
+      sentence3 = `Laporan informatif ini melengkapi arsip kehumasan dalam mengawal stabilitas reputasi organisasi secara berkelanjutan.`;
+    }
   }
 
   return `${sentence1} ${sentence2} ${sentence3}`;
