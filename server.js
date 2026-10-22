@@ -258,8 +258,45 @@ app.get('/api/auth/me', (req, res) => {
 });
 
 // Guard all other /api/* routes with multi-tenant context
+app.get('/api/debug-db', async (req, res) => {
+  const hasMongoUri = Boolean(process.env.MONGODB_URI);
+  let mongoConnected = false;
+  let mongoError = null;
+  let remoteTenant = null;
+  let localMonitors = 0;
+  let localResults = 0;
+
+  try {
+    const mongo = require('./src/mongodb');
+    const client = await mongo.getClient();
+    if (client) {
+      mongoConnected = true;
+      remoteTenant = await mongo.fetchTenantFromMongo('psdm.muhammadiyah');
+    }
+  } catch (err) {
+    mongoError = err.message;
+  }
+
+  try {
+    const currentDb = db.getDb();
+    localMonitors = currentDb.monitors?.length || 0;
+    localResults = currentDb.results?.length || 0;
+  } catch (e) {}
+
+  res.json({
+    hasMongoUri,
+    mongoUriPrefix: process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 18) + '...' : null,
+    mongoConnected,
+    mongoError,
+    remoteMonitorsCount: remoteTenant?.monitors?.length || 0,
+    remoteResultsCount: remoteTenant?.results?.length || 0,
+    localMonitors,
+    localResults
+  });
+});
+
 app.use('/api', (req, res, next) => {
-  const publicApiPaths = ['/auth/login', '/auth/register-request', '/auth/first-login-change-password'];
+  const publicApiPaths = ['/auth/login', '/auth/register-request', '/auth/first-login-change-password', '/debug-db'];
   if (publicApiPaths.includes(req.path)) {
     return next();
   }
