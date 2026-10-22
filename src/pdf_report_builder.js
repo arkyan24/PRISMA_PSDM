@@ -4,6 +4,14 @@
  */
 
 const PDFDocument = require('pdfkit');
+// Bundler hints: Ensure standard fonts are traced & included in serverless deployment
+try {
+  require('pdfkit/standard-fonts/Helvetica');
+  require('pdfkit/standard-fonts/HelveticaBold');
+  require('pdfkit/standard-fonts/HelveticaOblique');
+  require('pdfkit/standard-fonts/HelveticaBoldOblique');
+} catch (e) {}
+
 const path = require('path');
 const fs = require('fs');
 const {
@@ -151,7 +159,8 @@ async function buildPDFReport({
         size: 'A4',
         margins: { top: 0, bottom: 0, left: 0, right: 0 },
         bufferPages: true,
-        autoFirstPage: false
+        autoFirstPage: false,
+        font: false
       });
 
       const buffers = [];
@@ -164,6 +173,7 @@ async function buildPDFReport({
       doc.registerFont('DMSans-Medium', FONT_MEDIUM);
       doc.registerFont('DMSans-SemiBold', FONT_SEMIBOLD);
       doc.registerFont('DMSans-Bold', FONT_BOLD);
+      doc.font('DMSans-Regular');
 
       const keyword = monitor ? monitor.keyword : 'Muhammadiyah';
       const monitorName = monitor ? monitor.name : 'Pantauan Sosial Media';
