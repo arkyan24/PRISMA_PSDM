@@ -277,17 +277,21 @@ app.get('/api/debug-db', async (req, res) => {
     mongoError = err.message;
   }
 
+  let syncErr = null;
   try {
-    const currentDb = db.getDb();
-    localMonitors = currentDb.monitors?.length || 0;
-    localResults = currentDb.results?.length || 0;
-  } catch (e) {}
+    const synced = await db.syncTenantWithMongo('psdm.muhammadiyah');
+    localMonitors = synced?.monitors?.length || 0;
+    localResults = synced?.results?.length || 0;
+  } catch (e) {
+    syncErr = e.message;
+  }
 
   res.json({
     hasMongoUri,
     mongoUriPrefix: process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 18) + '...' : null,
     mongoConnected,
     mongoError,
+    syncErr,
     remoteMonitorsCount: remoteTenant?.monitors?.length || 0,
     remoteResultsCount: remoteTenant?.results?.length || 0,
     localMonitors,
