@@ -96,6 +96,8 @@ function loadVault() {
   return _vault;
 }
 
+const mongo = require('./mongodb');
+
 function saveVault() {
   ensureDir();
   if (_vault) {
@@ -104,6 +106,38 @@ function saveVault() {
     } catch (e) {
       console.warn('[Vault] Unable to write vault file:', e.message);
     }
+    if (mongo.isMongoEnabled()) {
+      mongo.saveVaultToMongo(_vault).catch(err => {
+        console.error('[Vault] Error syncing to MongoDB:', err.message);
+      });
+    }
+  }
+}
+
+async function syncVaultWithMongo() {
+  if (!mongo.isMongoEnabled()) return loadVault();
+  try {
+    const remoteVault = await mongo.fetchVaultFromMongo();
+    if (remoteVault && remoteVault.owner) {
+      _vault = remoteVault;
+      for (const key of Object.keys(DEFAULT_VAULT)) {
+        if (!(key in _vault)) _vault[key] = DEFAULT_VAULT[key];
+      }
+      try {
+        ensureDir();
+        fs.writeFileSync(VAULT_FILE, JSON.stringify(_vault, null, 2), 'utf-8');
+      } catch (e) {}
+      return _vault;
+    } else {
+      const localVault = loadVault();
+      initAuthVault();
+      await mongo.saveVaultToMongo(_vault);
+      console.log('[Vault] Seeded auth vault into MongoDB Atlas');
+      return _vault;
+    }
+  } catch (err) {
+    console.error('[Vault] syncVaultWithMongo error:', err.message);
+    return loadVault();
   }
 }
 
@@ -641,5 +675,7 @@ module.exports = {
   toggleUserStatusVault,
   extendUserSubscriptionVault,
   resetUserPasswordByOwner,
-  getPasswordHistoryVault
+  getPasswordHistoryVault,
+  // MongoDB sync
+  syncVaultWithMongo
 };

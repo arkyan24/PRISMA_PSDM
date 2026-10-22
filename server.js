@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
@@ -48,6 +49,17 @@ app.use('/css', express.static(path.join(__dirname, 'public', 'css')));
 app.use('/js', express.static(path.join(__dirname, 'public', 'js')));
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 app.use('/fonts', express.static(path.join(__dirname, 'public', 'fonts')));
+
+// ─── MongoDB Cloud Sync Middleware ───────────────────────────
+// Memastikan sesi dan data tenant sinkron dengan MongoDB Atlas di Vercel Serverless
+app.use(async (req, res, next) => {
+  try {
+    await db.ensureMongoSynced(req);
+  } catch (err) {
+    console.error('[Middleware] Mongo sync error:', err.message);
+  }
+  next();
+});
 
 // ─── Cookie & Auth Helpers ────────────────────────────────────
 function getCookie(req, name) {

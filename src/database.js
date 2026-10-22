@@ -10,6 +10,7 @@ const DATA_DIR = process.env.VERCEL ? path.join(os.tmpdir(), 'prisma_data') : pa
 const DB_FILE = path.join(DATA_DIR, 'database.json');
 const TENANTS_DIR = path.join(DATA_DIR, 'tenants');
 const authVault = require('./auth_vault');
+const mongo = require('./mongodb');
 const { clusterAndDeduplicate } = require('./clustering');
 const { analyzeSentimentNLP } = require('./nlp_sentiment');
 
@@ -112,13 +113,76 @@ function saveTenant(username) {
   const tenant = username || getActiveTenantName();
   const dbData = _tenantDbs[tenant] || DEFAULT_DB;
   const tenantFile = getTenantFilePath(tenant);
-  fs.writeFileSync(tenantFile, JSON.stringify(dbData, null, 2), 'utf-8');
+  try {
+    fs.writeFileSync(tenantFile, JSON.stringify(dbData, null, 2), 'utf-8');
+  } catch (e) {}
 
   // Keep root database.json synced for default tenant
   if (tenant === 'psdm.muhammadiyah') {
     try {
       fs.writeFileSync(DB_FILE, JSON.stringify(dbData, null, 2), 'utf-8');
     } catch(e) {}
+  }
+
+  // Sync to MongoDB Atlas
+  if (mongo.isMongoEnabled()) {
+    mongo.saveTenantToMongo(tenant, dbData).catch(err => {
+      console.error(`[DB] Error syncing tenant ${tenant} to MongoDB:`, err.message);
+    });
+  }
+}
+
+async function syncTenantWithMongo(username) {
+  if (!mongo.isMongoEnabled()) return loadTenant(username);
+  const tenant = username || getActiveTenantName();
+  try {
+    const remoteTenant = await mongo.fetchTenantFromMongo(tenant);
+    if (remoteTenant && remoteTenant.monitors) {
+      _tenantDbs[tenant] = remoteTenant;
+      // Ensure schema keys
+      for (const key of Object.keys(DEFAULT_DB)) {
+        if (!(key in _tenantDbs[tenant])) _tenantDbs[tenant][key] = DEFAULT_DB[key];
+      }
+      if (!_tenantDbs[tenant]._next_ids) _tenantDbs[tenant]._next_ids = { keywords: 1, results: 1, scan_logs: 1, users: 1, monitors: 1 };
+      
+      try {
+        ensureDir();
+        const tenantFile = getTenantFilePath(tenant);
+        fs.writeFileSync(tenantFile, JSON.stringify(_tenantDbs[tenant], null, 2), 'utf-8');
+      } catch (e) {}
+      return _tenantDbs[tenant];
+    } else {
+      const localData = loadTenant(tenant);
+      await mongo.saveTenantToMongo(tenant, localData);
+      console.log(`[DB] Seeded tenant ${tenant} into MongoDB Atlas`);
+      return localData;
+    }
+  } catch (err) {
+    console.error(`[DB] syncTenantWithMongo error (${tenant}):`, err.message);
+    return loadTenant(tenant);
+  }
+}
+
+async function ensureMongoSynced(req) {
+  if (!mongo.isMongoEnabled()) return;
+  // 1. Sync Vault (users, sessions)
+  await authVault.syncVaultWithMongo();
+
+  // 2. Identify tenant to sync
+  let tenantToSync = 'psdm.muhammadiyah';
+  if (req && req.headers && req.headers.cookie) {
+    const match = req.headers.cookie.match(/(?:^|; )(?:prisma_auth_token|syiar_auth_token|pijar_auth_token)=([^;]*)/);
+    if (match) {
+      const token = decodeURIComponent(match[1]);
+      const session = authVault.validateUserSession(token);
+      if (session && session.username) {
+        tenantToSync = session.username;
+      }
+    }
+  }
+  await syncTenantWithMongo(tenantToSync);
+  if (tenantToSync !== 'psdm.muhammadiyah') {
+    await syncTenantWithMongo('psdm.muhammadiyah');
   }
 }
 
@@ -972,5 +1036,8 @@ module.exports = {
   saveTenant,
   initTenantDatabase,
   enrichAndClusterDatabase,
-  migrateKeywordsToMonitors
+  migrateKeywordsToMonitors,
+  // MongoDB Sync Helpers
+  syncTenantWithMongo,
+  ensureMongoSynced
 };
