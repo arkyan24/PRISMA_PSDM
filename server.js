@@ -407,7 +407,7 @@ app.get('/api/monitors', (req, res) => {
   }
 });
 
-app.post('/api/monitors', (req, res) => {
+app.post('/api/monitors', async (req, res) => {
   try {
     const { name, keyword, description, polling_interval, initial_polling_mode } = req.body;
     if (!keyword || !keyword.trim()) {
@@ -420,8 +420,24 @@ app.post('/api/monitors', (req, res) => {
     if (status.isRunning && monitor.status === 'active') {
       scheduler.startMonitorTimer(monitor);
     }
+
+    // Jalankan scan awal segera agar hasil tidak 0
+    let totalFound = 0;
+    try {
+      const scanRes = await scheduler.runMonitorNow(monitor.id);
+      totalFound = scanRes?.totalNewResults || 0;
+    } catch (scanErr) {
+      console.warn('[Monitor Create] Initial scan warning:', scanErr.message);
+    }
+
+    // Simpan permanen ke MongoDB Atlas sebelum merespon HTTP
+    await db.saveTenantAsync();
     
-    res.json({ success: true, data: monitor, message: `Monitor "${monitor.name}" berhasil dibuat` });
+    res.json({ 
+      success: true, 
+      data: monitor, 
+      message: `Monitor "${monitor.name}" berhasil dibuat dan dipindai (${totalFound} hasil ditemukan)!` 
+    });
   } catch (e) {
     res.status(400).json({ success: false, message: e.message });
   }
@@ -439,7 +455,7 @@ app.get('/api/monitors/:id', (req, res) => {
   }
 });
 
-app.put('/api/monitors/:id', (req, res) => {
+app.put('/api/monitors/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const updated = db.updateMonitor(id, req.body);
@@ -449,6 +465,8 @@ app.put('/api/monitors/:id', (req, res) => {
     if (req.body.polling_interval) {
       scheduler.restartMonitorTimer(id);
     }
+
+    await db.saveTenantAsync();
     
     res.json({ success: true, data: updated, message: `Monitor "${updated.name}" berhasil diperbarui` });
   } catch (e) {
@@ -456,7 +474,7 @@ app.put('/api/monitors/:id', (req, res) => {
   }
 });
 
-app.delete('/api/monitors/:id', (req, res) => {
+app.delete('/api/monitors/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const monitor = db.getMonitor(id);
@@ -464,6 +482,7 @@ app.delete('/api/monitors/:id', (req, res) => {
     
     scheduler.stopMonitorTimer(id);
     db.deleteMonitor(id);
+    await db.saveTenantAsync();
     
     res.json({ success: true, message: `Monitor "${monitor.name}" beserta hasilnya berhasil dihapus` });
   } catch (e) {
@@ -471,7 +490,7 @@ app.delete('/api/monitors/:id', (req, res) => {
   }
 });
 
-app.patch('/api/monitors/:id/toggle', (req, res) => {
+app.patch('/api/monitors/:id/toggle', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const { active } = req.body;
@@ -485,6 +504,8 @@ app.patch('/api/monitors/:id/toggle', (req, res) => {
     } else {
       scheduler.stopMonitorTimer(id);
     }
+
+    await db.saveTenantAsync();
     
     res.json({ 
       success: true, 
@@ -504,13 +525,15 @@ app.post('/api/monitors/:id/poll-now', async (req, res) => {
       return res.json({ success: false, message: 'Scan sedang berjalan, tunggu hingga selesai.' });
     }
     
-    scheduler.runMonitorNow(id).then(result => {
-      console.log(`[Server] Monitor scan complete: ${result.totalNewResults || 0} new results`);
-    }).catch(err => {
-      console.error(`[Server] Monitor scan error: ${err.message}`);
-    });
+    // Await scanning to complete before ending serverless function!
+    const result = await scheduler.runMonitorNow(id);
+    await db.saveTenantAsync();
     
-    res.json({ success: true, message: 'Scan dimulai untuk monitor ini!' });
+    res.json({ 
+      success: true, 
+      message: `Scan selesai! Ditemukan ${result?.totalNewResults || 0} hasil baru.`,
+      result 
+    });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }

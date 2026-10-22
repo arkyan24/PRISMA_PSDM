@@ -132,12 +132,30 @@ function saveTenant(username) {
   }
 }
 
-async function syncTenantWithMongo(username) {
+async function saveTenantAsync(username) {
+  const tenant = username || getActiveTenantName();
+  saveTenant(tenant);
+  if (mongo.isMongoEnabled()) {
+    try {
+      await mongo.saveTenantToMongo(tenant, _tenantDbs[tenant] || DEFAULT_DB);
+    } catch (err) {
+      console.error(`[DB] saveTenantAsync error (${tenant}):`, err.message);
+    }
+  }
+}
+
+async function syncTenantWithMongo(username, force = false) {
   if (!mongo.isMongoEnabled()) return loadTenant(username);
   const tenant = username || getActiveTenantName();
   try {
     const remoteTenant = await mongo.fetchTenantFromMongo(tenant);
     if (remoteTenant && remoteTenant.monitors) {
+      // Safeguard: If local in-memory has monitors, but remote MongoDB returned 0, do not wipe!
+      if (!force && _tenantDbs[tenant] && (_tenantDbs[tenant].monitors?.length > 0) && remoteTenant.monitors.length === 0) {
+        await mongo.saveTenantToMongo(tenant, _tenantDbs[tenant]);
+        return _tenantDbs[tenant];
+      }
+
       _tenantDbs[tenant] = remoteTenant;
       // Ensure schema keys
       for (const key of Object.keys(DEFAULT_DB)) {
@@ -163,8 +181,18 @@ async function syncTenantWithMongo(username) {
   }
 }
 
+let _mongoInitialSynced = false;
+let _lastSyncTimestamp = 0;
+
 async function ensureMongoSynced(req) {
   if (!mongo.isMongoEnabled()) return;
+
+  const now = Date.now();
+  if (_mongoInitialSynced && (now - _lastSyncTimestamp < 3000)) {
+    return;
+  }
+  _lastSyncTimestamp = now;
+
   // 1. Sync Vault (users, sessions)
   await authVault.syncVaultWithMongo();
 
@@ -184,6 +212,7 @@ async function ensureMongoSynced(req) {
   if (tenantToSync !== 'psdm.muhammadiyah') {
     await syncTenantWithMongo('psdm.muhammadiyah');
   }
+  _mongoInitialSynced = true;
 }
 
 function initTenantDatabase(username, userMetadata = {}) {
@@ -1039,5 +1068,6 @@ module.exports = {
   migrateKeywordsToMonitors,
   // MongoDB Sync Helpers
   syncTenantWithMongo,
-  ensureMongoSynced
+  ensureMongoSynced,
+  saveTenantAsync
 };
