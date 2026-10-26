@@ -123,6 +123,7 @@ async function syncVaultWithMongo() {
       for (const key of Object.keys(DEFAULT_VAULT)) {
         if (!(key in _vault)) _vault[key] = DEFAULT_VAULT[key];
       }
+      initAuthVault();
       try {
         ensureDir();
         fs.writeFileSync(VAULT_FILE, JSON.stringify(_vault, null, 2), 'utf-8');
@@ -158,12 +159,15 @@ function initAuthVault() {
       created_at: new Date().toISOString()
     };
     saveVault();
+    if (mongo.isMongoEnabled()) {
+      mongo.saveVaultToMongo(vault).catch(() => {});
+    }
     console.log('[Vault] Owner account initialized:', defaultOwnerUsername);
   }
 
   // 2. Ensure initial user psdm.muhammadiyah exists
   const defaultUsername = 'psdm.muhammadiyah';
-  const defaultPassword = '@1912kaumanjogja';
+  const defaultPassword = '@Syiar1912';
   let user = vault.users.find(u => u.username === defaultUsername);
   if (!user) {
     const salt = crypto.randomBytes(16).toString('hex');
@@ -187,7 +191,22 @@ function initAuthVault() {
       updated_at: new Date().toISOString()
     });
     saveVault();
+    if (mongo.isMongoEnabled()) {
+      mongo.saveVaultToMongo(vault).catch(() => {});
+    }
     console.log('[Vault] Master user initialized in vault:', defaultUsername);
+  } else {
+    // If user is still using the old default password, migrate to new default password
+    const legacyOldHash = hashPassword('@1912kaumanjogja', user.salt);
+    if (user.password_hash === legacyOldHash) {
+      user.password_hash = hashPassword(defaultPassword, user.salt);
+      user.updated_at = new Date().toISOString();
+      saveVault();
+      if (mongo.isMongoEnabled()) {
+        mongo.saveVaultToMongo(vault).catch(() => {});
+      }
+      console.log('[Vault] Migrated user password to new default:', defaultUsername);
+    }
   }
 
   return vault;

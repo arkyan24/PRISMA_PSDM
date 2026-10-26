@@ -107,7 +107,7 @@ Gunakan kredensial berikut untuk masuk ke sistem:
 | Field | Nilai Default |
 | :--- | :--- |
 | **Email / Username** | `psdm.muhammadiyah` |
-| **Password** | `@1912kaumanjogja` |
+| **Password** | `@Syiar1912` |
 
 > [!NOTE]
 > Akun ini otomatis diinisialisasi oleh sistem saat pertama kali dijalankan. Anda dapat mengganti kata sandi kapan saja melalui menu **Pengaturan (`/settings`)**.
